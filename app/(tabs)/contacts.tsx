@@ -17,6 +17,25 @@ export default function ContactsScreen() {
   const themeColors = Colors[colorScheme];
   const { profile } = portfolioData;
 
+  // Responsive design tokens
+  const titleSize = isLargeScreen ? 48 : 34;
+  const subtitleSize = isLargeScreen ? 20 : 15;
+  const subtitleLineHeight = isLargeScreen ? 28 : 22;
+  const infoCardPadding = isLargeScreen ? 16 : 12;
+  const infoValSize = isLargeScreen ? 16 : 13;
+  const infoIconSize = isLargeScreen ? 22 : 18;
+  const inputHeight = isLargeScreen ? 52 : 46;
+  const inputPadding = isLargeScreen ? 16 : 12;
+  const inputFontSize = isLargeScreen ? 17 : 14;
+  const messageInputHeight = isLargeScreen ? 160 : 120;
+  const submitBtnHeight = isLargeScreen ? 52 : 46;
+  const submitBtnTextSize = isLargeScreen ? 18 : 15;
+  const submitBtnRadius = isLargeScreen ? 26 : 23;
+  
+  const contentPadding = isLargeScreen ? 32 : 20;
+  const cardsGap = isLargeScreen ? 20 : 12;
+  const rowMarginBottom = isLargeScreen ? 32 : 20;
+
   // Form State
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -85,38 +104,38 @@ export default function ContactsScreen() {
       <ScrollView 
         contentContainerStyle={[
           styles.scrollContent,
-          { maxWidth: 768 }
+          { maxWidth: 768, padding: contentPadding }
         ]}
         showsVerticalScrollIndicator={false}
       >
         {/* Title Header */}
         <View style={styles.webHeader}>
-          <Text className="text-3d-hologram" style={[styles.webTitle, { color: themeColors.text }]}>
+          <Text className="text-3d-hologram" style={[styles.webTitle, { color: themeColors.text, fontSize: titleSize }]}>
             Contact <Text style={{ color: themeColors.tint }}>Me!</Text>
           </Text>
-          <Text style={[styles.headerSubtitle, { color: themeColors.secondaryText }]}>
+          <Text style={[styles.headerSubtitle, { color: themeColors.secondaryText, fontSize: subtitleSize, lineHeight: subtitleLineHeight }]}>
             Have an exciting project idea or want to work together? Let's connect!
           </Text>
         </View>
 
         {/* Contact Info Cards */}
-        <View style={styles.infoRow}>
+        <View style={[styles.infoRow, { gap: cardsGap, marginBottom: rowMarginBottom }]}>
           <TouchableOpacity 
             className="btn-outline-3d"
-            style={[styles.infoCard, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}
+            style={[styles.infoCard, { backgroundColor: themeColors.card, borderColor: themeColors.border, paddingVertical: infoCardPadding, gap: cardsGap }]}
             onPress={() => openUrl(`mailto:${profile.email}`)}
           >
-            <Ionicons className="icon-3d-rotate" name="mail-outline" size={20} color={themeColors.tint} />
-            <Text style={[styles.infoVal, { color: themeColors.text }]} numberOfLines={1}>{profile.email}</Text>
+            <Ionicons className="icon-3d-rotate" name="mail-outline" size={infoIconSize} color={themeColors.tint} />
+            <Text style={[styles.infoVal, { color: themeColors.text, fontSize: infoValSize }]} numberOfLines={1}>{profile.email}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
             className="btn-outline-3d"
-            style={[styles.infoCard, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}
+            style={[styles.infoCard, { backgroundColor: themeColors.card, borderColor: themeColors.border, paddingVertical: infoCardPadding, gap: cardsGap }]}
             onPress={() => openUrl(`tel:${profile.phone}`)}
           >
-            <Ionicons className="icon-3d-rotate" name="call-outline" size={20} color={themeColors.tint} />
-            <Text style={[styles.infoVal, { color: themeColors.text }]}>{profile.phone}</Text>
+            <Ionicons className="icon-3d-rotate" name="call-outline" size={infoIconSize} color={themeColors.tint} />
+            <Text style={[styles.infoVal, { color: themeColors.text, fontSize: infoValSize }]}>{profile.phone}</Text>
           </TouchableOpacity>
         </View>
 
@@ -152,7 +171,7 @@ export default function ContactsScreen() {
           <View style={styles.formContainer}>
             
             {/* 2-Column Grid Inputs for Desktop, Stacked for Mobile */}
-            <View style={[styles.formGrid, { flexDirection: isLargeScreen ? 'row' : 'column', gap: 16 }]}>
+            <View style={[styles.formGrid, { flexDirection: isLargeScreen ? 'row' : 'column', gap: cardsGap }]}>
               <View style={styles.gridColumn}>
                 <TextInput 
                   style={[
@@ -160,7 +179,10 @@ export default function ContactsScreen() {
                     { 
                       backgroundColor: themeColors.card, 
                       color: themeColors.text,
-                      borderColor: errors.name ? '#EF4444' : themeColors.border 
+                      borderColor: errors.name ? '#EF4444' : themeColors.border,
+                      height: inputHeight,
+                      fontSize: inputFontSize,
+                      paddingHorizontal: inputPadding,
                     }
                   ]}
                   placeholder="Full Name"
@@ -181,7 +203,10 @@ export default function ContactsScreen() {
                     { 
                       backgroundColor: themeColors.card, 
                       color: themeColors.text,
-                      borderColor: errors.email ? '#EF4444' : themeColors.border 
+                      borderColor: errors.email ? '#EF4444' : themeColors.border,
+                      height: inputHeight,
+                      fontSize: inputFontSize,
+                      paddingHorizontal: inputPadding,
                     }
                   ]}
                   placeholder="Email Address"
@@ -198,7 +223,7 @@ export default function ContactsScreen() {
               </View>
             </View>
 
-            <View style={[styles.formGrid, { flexDirection: isLargeScreen ? 'row' : 'column', gap: 16, marginTop: 16 }]}>
+            <View style={[styles.formGrid, { flexDirection: isLargeScreen ? 'row' : 'column', gap: cardsGap, marginTop: cardsGap }]}>
               <View style={styles.gridColumn}>
                 <TextInput 
                   style={[
@@ -206,7 +231,10 @@ export default function ContactsScreen() {
                     { 
                       backgroundColor: themeColors.card, 
                       color: themeColors.text,
-                      borderColor: themeColors.border 
+                      borderColor: themeColors.border,
+                      height: inputHeight,
+                      fontSize: inputFontSize,
+                      paddingHorizontal: inputPadding,
                     }
                   ]}
                   placeholder="Mobile Number"
@@ -224,7 +252,10 @@ export default function ContactsScreen() {
                     { 
                       backgroundColor: themeColors.card, 
                       color: themeColors.text,
-                      borderColor: themeColors.border 
+                      borderColor: themeColors.border,
+                      height: inputHeight,
+                      fontSize: inputFontSize,
+                      paddingHorizontal: inputPadding,
                     }
                   ]}
                   placeholder="Email Subject"
@@ -236,7 +267,7 @@ export default function ContactsScreen() {
             </View>
 
             {/* Message Input - Full Width */}
-            <View style={[styles.inputGroup, { marginTop: 16 }]}>
+            <View style={[styles.inputGroup, { marginTop: cardsGap }]}>
               <TextInput 
                 style={[
                   styles.textInput, 
@@ -244,7 +275,10 @@ export default function ContactsScreen() {
                   { 
                     backgroundColor: themeColors.card, 
                     color: themeColors.text,
-                    borderColor: errors.message ? '#EF4444' : themeColors.border 
+                    borderColor: errors.message ? '#EF4444' : themeColors.border,
+                    height: messageInputHeight,
+                    fontSize: inputFontSize,
+                    paddingHorizontal: inputPadding,
                   }
                 ]}
                 placeholder="Your Message"
@@ -265,11 +299,11 @@ export default function ContactsScreen() {
             <View style={styles.btnCenterWrapper}>
               <TouchableOpacity 
                 className="btn-3d"
-                style={[styles.submitButton, { backgroundColor: themeColors.tint, shadowColor: themeColors.tint }]}
+                style={[styles.submitButton, { backgroundColor: themeColors.tint, shadowColor: themeColors.tint, height: submitBtnHeight, borderRadius: submitBtnRadius }]}
                 onPress={handleSubmit}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.submitButtonText, { color: colorScheme === 'dark' ? '#1f242d' : '#FFFFFF' }]}>Send Message</Text>
+                <Text style={[styles.submitButtonText, { color: colorScheme === 'dark' ? '#1f242d' : '#FFFFFF', fontSize: submitBtnTextSize }]}>Send Message</Text>
               </TouchableOpacity>
             </View>
           </View>

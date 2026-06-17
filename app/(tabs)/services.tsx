@@ -24,9 +24,23 @@ export default function ServicesScreen() {
     });
   };
 
+  // Responsive design tokens
+  const titleSize = isLargeScreen ? 48 : (isMediumScreen ? 40 : 32);
+  const subtitleSize = isLargeScreen ? 20 : (isMediumScreen ? 17 : 14);
+  const cardTitleSize = isLargeScreen ? 24 : (isMediumScreen ? 21 : 18);
+  const cardDescSize = isLargeScreen ? 16 : (isMediumScreen ? 14 : 13);
+  const cardDescLineHeight = isLargeScreen ? 24 : (isMediumScreen ? 21 : 19);
+  const featureTextSize = isLargeScreen ? 16 : (isMediumScreen ? 14 : 13);
+  const featureDotSize = isLargeScreen ? 8 : (isMediumScreen ? 6 : 5);
+  const buttonTextSize = isLargeScreen ? 16 : (isMediumScreen ? 14 : 13);
+  const buttonHeight = isLargeScreen ? 52 : (isMediumScreen ? 46 : 42);
+  const cardIconSize = isLargeScreen ? 40 : (isMediumScreen ? 34 : 28);
+  const iconContainerSize = isLargeScreen ? 72 : (isMediumScreen ? 62 : 52);
+  const cardPadding = isLargeScreen ? 28 : (isMediumScreen ? 22 : 16);
+
   // Mathematically calculate precise card width to avoid wrapping errors
-  const padding = 24;
-  const gap = 24;
+  const padding = isLargeScreen ? 32 : (isMediumScreen ? 24 : 16);
+  const gap = isLargeScreen ? 28 : (isMediumScreen ? 20 : 16);
   const containerMaxWidth = 1100;
   const currentContainerWidth = Math.min(width, containerMaxWidth) - (padding * 2);
 
@@ -74,16 +88,16 @@ export default function ServicesScreen() {
         style={styles.scrollView}
         contentContainerStyle={[
           styles.contentContainer,
-          { maxWidth: containerMaxWidth }
+          { maxWidth: containerMaxWidth, padding: padding }
         ]}
         showsVerticalScrollIndicator={false}
       >
         {/* Title Header */}
         <View style={styles.webHeader}>
-          <Text className="text-3d-hologram" style={[styles.webTitle, { color: themeColors.text }]}>
+          <Text className="text-3d-hologram" style={[styles.webTitle, { color: themeColors.text, fontSize: titleSize }]}>
             Our <Text style={{ color: themeColors.tint }}>Services</Text>
           </Text>
-          <Text style={[styles.headerSubtitle, { color: themeColors.secondaryText }]}>
+          <Text style={[styles.headerSubtitle, { color: themeColors.secondaryText, fontSize: subtitleSize, lineHeight: subtitleSize * 1.4 }]}>
             High-impact engineering solutions designed to grow your business.
           </Text>
         </View>
@@ -113,19 +127,20 @@ export default function ServicesScreen() {
                     backgroundColor: themeColors.card, 
                     borderColor: themeColors.border,
                     width: getCardWidth(),
+                    padding: cardPadding,
                   }
                 ]}
               >
                 {/* Centered Icon */}
-                <View className="icon-3d" style={styles.iconContainer}>
-                  <Ionicons className="icon-3d-rotate" name={iconName} size={36} color={themeColors.tint} />
+                <View className="icon-3d" style={[styles.iconContainer, { width: iconContainerSize, height: iconContainerSize, borderRadius: iconContainerSize / 2 }]}>
+                  <Ionicons className="icon-3d-rotate" name={iconName} size={cardIconSize} color={themeColors.tint} />
                 </View>
  
                 {/* Title */}
-                <Text className="text-3d text-3d-hologram" style={[styles.cardTitle, { color: themeColors.text }]}>{service.title}</Text>
+                <Text className="text-3d text-3d-hologram" style={[styles.cardTitle, { color: themeColors.text, fontSize: cardTitleSize }]}>{service.title}</Text>
  
                 {/* Description */}
-                <Text style={[styles.cardDescription, { color: themeColors.secondaryText }]}>
+                <Text style={[styles.cardDescription, { color: themeColors.secondaryText, fontSize: cardDescSize, lineHeight: cardDescLineHeight }]}>
                   {service.description}
                 </Text>
  
@@ -133,8 +148,8 @@ export default function ServicesScreen() {
                 <View style={styles.featuresContainer}>
                   {service.features.map((feature, idx) => (
                     <View key={idx} style={styles.featureItem}>
-                      <Ionicons name="ellipse" size={6} color={themeColors.tint} style={{ marginRight: 6 }} />
-                      <Text style={[styles.featureText, { color: themeColors.text }]}>{feature}</Text>
+                      <Ionicons name="ellipse" size={featureDotSize} color={themeColors.tint} style={{ marginRight: 6 }} />
+                      <Text style={[styles.featureText, { color: themeColors.text, fontSize: featureTextSize }]}>{feature}</Text>
                     </View>
                   ))}
                 </View>
@@ -142,11 +157,11 @@ export default function ServicesScreen() {
                 {/* Action Button - Neon Pill Style with shadow glow */}
                 <TouchableOpacity
                   className="btn-3d"
-                  style={[styles.inquireButton, { backgroundColor: themeColors.tint, shadowColor: themeColors.tint }]}
+                  style={[styles.inquireButton, { backgroundColor: themeColors.tint, shadowColor: themeColors.tint, height: buttonHeight, borderRadius: buttonHeight / 2 }]}
                   onPress={() => handleInquiry(service.title)}
                   activeOpacity={0.8}
                 >
-                  <Text style={[styles.inquireButtonText, { color: colorScheme === 'dark' ? '#1f242d' : '#ffffff' }]}>Read More</Text>
+                  <Text style={[styles.inquireButtonText, { color: colorScheme === 'dark' ? '#1f242d' : '#ffffff', fontSize: buttonTextSize }]}>Read More</Text>
                 </TouchableOpacity>
               </View>
             );

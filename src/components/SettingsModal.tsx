@@ -4,6 +4,7 @@ import { Text, View } from './Themed';
 import Colors from '@/constants/Colors';
 import { useColorScheme, setThemeGlobal } from './useColorScheme';
 import { Ionicons } from '@expo/vector-icons';
+import { removeIndexedDBItem } from '@/utils/storage';
 
 interface SettingsModalProps {
   visible: boolean;
@@ -15,9 +16,11 @@ export default function SettingsModal({ visible, onClose }: SettingsModalProps) 
   const themeColors = Colors[colorScheme];
 
   const handleResetData = () => {
-    const reset = () => {
+    const reset = async () => {
       try {
         if (Platform.OS === 'web') {
+          await removeIndexedDBItem('portfolio_projects');
+          await removeIndexedDBItem('portfolio_certificates');
           localStorage.removeItem('portfolio_projects');
           localStorage.removeItem('portfolio_certificates');
           window.location.reload();

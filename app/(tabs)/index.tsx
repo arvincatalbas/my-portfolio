@@ -28,6 +28,27 @@ export default function HomeScreen() {
   const themeColors = Colors[colorScheme];
   const { profile } = portfolioData;
 
+  // Responsive design tokens
+  const greetingSize = isLargeScreen ? 34 : 26;
+  const nameSize = isLargeScreen ? 72 : 46;
+  const nameLineHeight = isLargeScreen ? 82 : 52;
+  const titleSize = isLargeScreen ? 32 : 22;
+  const titleLineHeight = isLargeScreen ? 40 : 28;
+  const descSize = isLargeScreen ? 20 : 15;
+  const descLineHeight = isLargeScreen ? 32 : 24;
+  const descMarginBottom = isLargeScreen ? 36 : 20;
+  const socialIconSize = isLargeScreen ? 22 : 18;
+  const socialCircleSize = isLargeScreen ? 48 : 38;
+  const socialCircleRadius = isLargeScreen ? 24 : 19;
+  const ctaBtnTextSize = isLargeScreen ? 18 : 15;
+  const ctaBtnHeight = isLargeScreen ? 56 : 46;
+  const ctaBtnRadius = isLargeScreen ? 28 : 23;
+  const contentPaddingVertical = isLargeScreen ? 80 : 24;
+  const contentPaddingHorizontal = isLargeScreen ? 24 : 16;
+  const heroSectionGap = isLargeScreen ? 48 : 24;
+  const heroPaddingVertical = isLargeScreen ? 40 : 20;
+  const profilePicSize = isLargeScreen ? 420 : 300;
+
   const openUrl = (url: string) => {
     Linking.openURL(url).catch((err) => console.error("Couldn't load page", err));
   };
@@ -50,9 +71,9 @@ export default function HomeScreen() {
             display: inline-block;
             color: ${themeColors.text};
             font-family: 'Outfit', sans-serif !important;
-            font-size: 64px;
+            font-size: ${nameSize}px;
             font-weight: 900;
-            line-height: 72px;
+            line-height: ${nameLineHeight}px;
             margin-bottom: 10px;
             animation: glitch-skew 1s infinite linear alternate-reverse;
           }
@@ -88,9 +109,9 @@ export default function HomeScreen() {
             display: inline-block;
             color: ${themeColors.tint};
             font-family: 'Outfit', sans-serif !important;
-            font-size: 28px;
+            font-size: ${titleSize}px;
             font-weight: 800;
-            line-height: 36px;
+            line-height: ${titleLineHeight}px;
             animation: glitch-skew 1.5s infinite linear alternate-reverse;
           }
           
@@ -169,14 +190,14 @@ export default function HomeScreen() {
           
           @media (max-width: 768px) {
             .glitch-name {
-              font-size: 42px !important;
-              line-height: 48px !important;
+              font-size: ${nameSize}px !important;
+              line-height: ${nameLineHeight}px !important;
               text-align: center;
               margin-bottom: 12px;
             }
             .glitch-title {
-              font-size: 20px !important;
-              line-height: 28px !important;
+              font-size: ${titleSize}px !important;
+              line-height: ${titleLineHeight}px !important;
               text-align: center;
             }
           }
@@ -194,17 +215,30 @@ export default function HomeScreen() {
           
           /* Avatar 3D Animation & Hover effect */
           .avatar-3d {
-            transition: transform 0.2s ease-out, box-shadow 0.6s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.6s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
             transform-style: preserve-3d;
             perspective: 1000px;
             transform: translateY(calc(var(--scroll-y) * -0.08px)) 
                        rotateY(calc(var(--scroll-y) * 0.02deg)) 
                        rotateX(calc(var(--scroll-y) * -0.015deg));
           }
+          .avatar-border-3d {
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+            transform-style: preserve-3d;
+          }
+          .avatar-img-3d {
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+          }
           .avatar-3d:hover {
-            transform: scale(1.08) rotateY(15deg) rotateX(10deg) translateY(-4px) !important;
-            box-shadow: 0 25px 50px ${themeColors.tint}80 !important;
+            transform: scale(1.12) rotateY(25deg) rotateX(15deg) translateY(-8px) !important;
+            box-shadow: -15px 30px 60px ${themeColors.tint}60 !important;
             border-color: ${themeColors.tint} !important;
+          }
+          .avatar-3d:hover .avatar-border-3d {
+            transform: translateZ(30px);
+          }
+          .avatar-3d:hover .avatar-img-3d {
+            transform: translateZ(60px) scale(1.08);
           }
           
           /* Social circle 3D hover */
@@ -235,17 +269,17 @@ export default function HomeScreen() {
         style={styles.scrollView}
         contentContainerStyle={[
           styles.contentContainer, 
-          { maxWidth: 1100, flexGrow: 1, justifyContent: isLargeScreen ? 'center' : 'flex-start' }
+          { maxWidth: 1100, flexGrow: 1, justifyContent: isLargeScreen ? 'center' : 'flex-start', paddingVertical: contentPaddingVertical, paddingHorizontal: contentPaddingHorizontal }
         ]}
         showsVerticalScrollIndicator={false}
       >
         
         {/* HERO SECTION */}
-        <View style={[styles.heroSection, { flexDirection: isLargeScreen ? 'row' : 'column-reverse', gap: 40 }]}>
+        <View style={[styles.heroSection, { flexDirection: isLargeScreen ? 'row' : 'column-reverse', gap: heroSectionGap, paddingVertical: heroPaddingVertical }]}>
           
           {/* Left Text details */}
           <View style={[styles.heroTextContainer, { flex: isLargeScreen ? 1.2 : undefined, alignItems: isLargeScreen ? 'flex-start' : 'center' }]}>
-            <Text className="text-3d-hologram" style={[styles.greetingText, { color: themeColors.text }]}>Hello, It's Me</Text>
+            <Text className="text-3d-hologram" style={[styles.greetingText, { color: themeColors.text, fontSize: greetingSize }]}>Hello, It's Me</Text>
             
             {/* Glitch Animated Name */}
             {Platform.OS === 'web' ? (
@@ -257,13 +291,13 @@ export default function HomeScreen() {
                 {profile.name}
               </span>
             ) : (
-              <Text style={[styles.heroName, { color: themeColors.text }]}>
+              <Text style={[styles.heroName, { color: themeColors.text, fontSize: nameSize, lineHeight: nameLineHeight }]}>
                 {profile.name}
               </Text>
             )}
             
             <View style={[styles.typedContainer, { justifyContent: isLargeScreen ? 'flex-start' : 'center' }]}>
-              <Text className="text-3d-hologram" style={[styles.heroSub, { color: themeColors.text }]}>And I'm a </Text>
+              <Text className="text-3d-hologram" style={[styles.heroSub, { color: themeColors.text, fontSize: titleSize }]}>And I'm a </Text>
               
               {/* Glitch Animated Title */}
               {Platform.OS === 'web' ? (
@@ -275,89 +309,89 @@ export default function HomeScreen() {
                   Network/IT Product Associate & Web Developer
                 </span>
               ) : (
-                <Text style={[styles.heroSubHighlight, { color: themeColors.tint }]}>
+                <Text style={[styles.heroSubHighlight, { color: themeColors.tint, fontSize: titleSize }]}>
                   Network/IT product Associate & Web Developer
                 </Text>
               )}
             </View>
-
-            <Text style={[styles.heroDescription, { color: themeColors.secondaryText, textAlign: isLargeScreen ? 'left' : 'center' }]}>
+ 
+            <Text style={[styles.heroDescription, { color: themeColors.secondaryText, textAlign: isLargeScreen ? 'left' : 'center', fontSize: descSize, lineHeight: descLineHeight, marginBottom: descMarginBottom }]}>
               Driven Information Technology graduate with a strong foundation in network infrastructure, device configuration, and software development. seeking to deploy high-performing IT solutions.
             </Text>
-
+ 
             {/* Glowing Social Circles */}
             <View style={styles.socialRow}>
               {profile.facebook && (
                 <TouchableOpacity 
                   className="social-circle-3d btn-outline-3d"
-                  style={[styles.socialCircle, { borderColor: themeColors.tint }]}
+                  style={[styles.socialCircle, { borderColor: themeColors.tint, width: socialCircleSize, height: socialCircleSize, borderRadius: socialCircleRadius }]}
                   onPress={() => openUrl(profile.facebook!)}
                 >
-                  <Ionicons className="icon-3d-rotate" name="logo-facebook" size={20} color={themeColors.tint} />
+                  <Ionicons className="icon-3d-rotate" name="logo-facebook" size={socialIconSize} color={themeColors.tint} />
                 </TouchableOpacity>
               )}
               {profile.instagram && (
                 <TouchableOpacity 
                   className="social-circle-3d btn-outline-3d"
-                  style={[styles.socialCircle, { borderColor: themeColors.tint }]}
+                  style={[styles.socialCircle, { borderColor: themeColors.tint, width: socialCircleSize, height: socialCircleSize, borderRadius: socialCircleRadius }]}
                   onPress={() => openUrl(profile.instagram!)}
                 >
-                  <Ionicons className="icon-3d-rotate" name="logo-instagram" size={20} color={themeColors.tint} />
+                  <Ionicons className="icon-3d-rotate" name="logo-instagram" size={socialIconSize} color={themeColors.tint} />
                 </TouchableOpacity>
               )}
               <TouchableOpacity 
                 className="social-circle-3d btn-outline-3d"
-                style={[styles.socialCircle, { borderColor: themeColors.tint }]}
+                style={[styles.socialCircle, { borderColor: themeColors.tint, width: socialCircleSize, height: socialCircleSize, borderRadius: socialCircleRadius }]}
                 onPress={() => openUrl(profile.github)}
               >
-                <Ionicons className="icon-3d-rotate" name="logo-github" size={20} color={themeColors.tint} />
+                <Ionicons className="icon-3d-rotate" name="logo-github" size={socialIconSize} color={themeColors.tint} />
               </TouchableOpacity>
               <TouchableOpacity 
                 className="social-circle-3d btn-outline-3d"
-                style={[styles.socialCircle, { borderColor: themeColors.tint }]}
+                style={[styles.socialCircle, { borderColor: themeColors.tint, width: socialCircleSize, height: socialCircleSize, borderRadius: socialCircleRadius }]}
                 onPress={() => openUrl(profile.linkedin)}
               >
-                <Ionicons className="icon-3d-rotate" name="logo-linkedin" size={20} color={themeColors.tint} />
+                <Ionicons className="icon-3d-rotate" name="logo-linkedin" size={socialIconSize} color={themeColors.tint} />
               </TouchableOpacity>
               <TouchableOpacity 
                 className="social-circle-3d btn-outline-3d"
-                style={[styles.socialCircle, { borderColor: themeColors.tint }]}
+                style={[styles.socialCircle, { borderColor: themeColors.tint, width: socialCircleSize, height: socialCircleSize, borderRadius: socialCircleRadius }]}
                 onPress={() => openUrl(profile.twitter)}
               >
-                <Ionicons className="icon-3d-rotate" name="logo-twitter" size={20} color={themeColors.tint} />
+                <Ionicons className="icon-3d-rotate" name="logo-twitter" size={socialIconSize} color={themeColors.tint} />
               </TouchableOpacity>
             </View>
-
+ 
             {/* CTA Buttons Row */}
             <View style={styles.ctaRow}>
               <TouchableOpacity 
                 className="btn-3d"
-                style={[styles.neonButton, { backgroundColor: themeColors.tint, shadowColor: themeColors.tint }]}
+                style={[styles.neonButton, { backgroundColor: themeColors.tint, shadowColor: themeColors.tint, height: ctaBtnHeight, borderRadius: ctaBtnRadius }]}
                 onPress={() => router.push('/contacts')}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.neonButtonText, { color: colorScheme === 'dark' ? '#1f242d' : '#ffffff' }]}>Hire Me</Text>
+                <Text style={[styles.neonButtonText, { color: colorScheme === 'dark' ? '#1f242d' : '#ffffff', fontSize: ctaBtnTextSize }]}>Hire Me</Text>
               </TouchableOpacity>
-
+ 
               <TouchableOpacity 
                 className="btn-outline-3d"
-                style={[styles.resumeButton, { borderColor: themeColors.tint }]}
+                style={[styles.resumeButton, { borderColor: themeColors.tint, height: ctaBtnHeight, borderRadius: ctaBtnRadius }]}
                 onPress={() => openUrl(profile.resumeUrl)}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.resumeButtonText, { color: themeColors.tint }]}>My Resume</Text>
+                <Text style={[styles.resumeButtonText, { color: themeColors.tint, fontSize: ctaBtnTextSize }]}>My Resume</Text>
               </TouchableOpacity>
             </View>
           </View>
-
+ 
           {/* Right Glowing Profile Photo (Hexagon on Web, Circle on Mobile) */}
           <View style={[styles.heroImageContainer, { flex: isLargeScreen ? 0.8 : undefined }]}>
             {Platform.OS === 'web' ? (
               <View 
                 className="avatar-3d"
                 style={{
-                  width: isLargeScreen ? 320 : 260,
-                  height: isLargeScreen ? 320 : 260,
+                  width: profilePicSize,
+                  height: profilePicSize,
                   filter: `drop-shadow(0 0 20px ${themeColors.tint}60)`,
                   backgroundColor: 'transparent',
                   justifyContent: 'center',
@@ -365,6 +399,7 @@ export default function HomeScreen() {
                 } as any}
               >
                 <View 
+                  className="avatar-border-3d"
                   style={{
                     width: '100%',
                     height: '100%',
@@ -385,6 +420,7 @@ export default function HomeScreen() {
                   >
                     <Image 
                       source={profile.avatar}
+                      className="avatar-img-3d"
                       style={styles.profilePic}
                       resizeMode="cover"
                     />
@@ -398,9 +434,9 @@ export default function HomeScreen() {
                   { 
                     shadowColor: themeColors.tint, 
                     borderColor: themeColors.tint,
-                    width: 260,
-                    height: 260,
-                    borderRadius: 130,
+                    width: profilePicSize,
+                    height: profilePicSize,
+                    borderRadius: profilePicSize / 2,
                   }
                 ]}
               >

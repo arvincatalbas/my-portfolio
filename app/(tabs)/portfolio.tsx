@@ -8,57 +8,56 @@ import { Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
 import WebHeader from '@/components/WebHeader';
 import { showDeleteConfirmation } from '@/components/DeleteConfirmation';
+import { getIndexedDBItem, setIndexedDBItem } from '@/utils/storage';
+import { compressImage } from '@/utils/image';
+import Swal from 'sweetalert2';
 
 const { height } = Dimensions.get('window');
 
 export default function PortfolioScreen() {
   const isWeb = Platform.OS === 'web';
 
-  // Initialize projects and certificates in State for CRUD operations (with localStorage persistence)
-  const [projects, setProjects] = useState<Project[]>(() => {
-    if (Platform.OS === 'web') {
-      try {
-        const stored = localStorage.getItem('portfolio_projects');
-        if (stored) return JSON.parse(stored);
-      } catch (e) {
-        console.error("Failed to load projects from localStorage", e);
-      }
-    }
-    return portfolioData.projects;
-  });
+  // Initialize projects and certificates in State
+  const [projects, setProjects] = useState<Project[]>(portfolioData.projects);
+  const [certificates, setCertificates] = useState<Certificate[]>(portfolioData.certificates);
+  const [hasLoaded, setHasLoaded] = useState(false);
 
-  const [certificates, setCertificates] = useState<Certificate[]>(() => {
-    if (Platform.OS === 'web') {
-      try {
-        const stored = localStorage.getItem('portfolio_certificates');
-        if (stored) return JSON.parse(stored);
-      } catch (e) {
-        console.error("Failed to load certificates from localStorage", e);
-      }
-    }
-    return portfolioData.certificates;
-  });
-
-  // Persist state updates to localStorage
+  // Load from IndexedDB on web mount
   useEffect(() => {
     if (isWeb) {
-      try {
-        localStorage.setItem('portfolio_projects', JSON.stringify(projects));
-      } catch (e) {
-        console.error("Failed to save projects to localStorage", e);
-      }
+      const loadInitialData = async () => {
+        try {
+          const storedProjects = await getIndexedDBItem<Project[]>('portfolio_projects');
+          const storedCerts = await getIndexedDBItem<Certificate[]>('portfolio_certificates');
+          
+          if (storedProjects) setProjects(storedProjects);
+          if (storedCerts) setCertificates(storedCerts);
+        } catch (e) {
+          console.error("Failed to load portfolio data from IndexedDB", e);
+        } finally {
+          setHasLoaded(true);
+        }
+      };
+      loadInitialData();
+    } else {
+      setHasLoaded(true);
     }
-  }, [projects]);
+  }, []);
+
+  // Persist state updates to IndexedDB
+  useEffect(() => {
+    if (isWeb && hasLoaded) {
+      setIndexedDBItem('portfolio_projects', projects)
+        .catch(e => console.error("Failed to save projects to IndexedDB", e));
+    }
+  }, [projects, hasLoaded]);
 
   useEffect(() => {
-    if (isWeb) {
-      try {
-        localStorage.setItem('portfolio_certificates', JSON.stringify(certificates));
-      } catch (e) {
-        console.error("Failed to save certificates to localStorage", e);
-      }
+    if (isWeb && hasLoaded) {
+      setIndexedDBItem('portfolio_certificates', certificates)
+        .catch(e => console.error("Failed to save certificates to IndexedDB", e));
     }
-  }, [certificates]);
+  }, [certificates, hasLoaded]);
 
   const [activeTab, setActiveTab] = useState<'projects' | 'certificates'>('projects');
   
@@ -121,12 +120,32 @@ export default function PortfolioScreen() {
       input.onchange = (e: any) => {
         const file = e.target.files?.[0];
         if (file) {
+          if (type === 'pdf' && file.size > 2 * 1024 * 1024) {
+            Swal.fire({
+              title: 'File Too Large',
+              text: 'PDF size exceeds the 2MB limit. Please upload a smaller PDF file.',
+              icon: 'warning',
+              confirmButtonColor: themeColors.tint,
+              background: colorScheme === 'dark' ? '#323946' : '#FFFFFF',
+              color: colorScheme === 'dark' ? '#FFFFFF' : '#1F2937',
+            });
+            return;
+          }
+          
           const reader = new FileReader();
-          reader.onload = () => {
+          reader.onload = async () => {
+            const rawDataUrl = reader.result as string;
             if (type === 'image') {
-              setNewImgUrl(reader.result as string);
+              try {
+                // Compress the image before setting state
+                const compressed = await compressImage(rawDataUrl, 1024, 1024, 0.7);
+                setNewImgUrl(compressed);
+              } catch (compressErr) {
+                console.error("Compression failed, using raw image:", compressErr);
+                setNewImgUrl(rawDataUrl);
+              }
             } else {
-              setNewPdfUrl(reader.result as string);
+              setNewPdfUrl(rawDataUrl);
             }
           };
           reader.readAsDataURL(file);
@@ -299,9 +318,25 @@ export default function PortfolioScreen() {
     handleCloseModal();
   };
 
+  // Responsive design tokens
+  const titleSize = isLargeScreen ? 48 : (isMediumScreen ? 40 : 32);
+  const subtitleSize = isLargeScreen ? 20 : (isMediumScreen ? 17 : 14);
+  const tabTextSize = isLargeScreen ? 18 : (isMediumScreen ? 16 : 14);
+  const tabButtonHeight = isLargeScreen ? 44 : (isMediumScreen ? 40 : 36);
+  const uploadBtnTextSize = isLargeScreen ? 17 : (isMediumScreen ? 15 : 13);
+  const uploadBtnHeight = isLargeScreen ? 54 : (isMediumScreen ? 46 : 42);
+  const cardTitleSize = isLargeScreen ? 22 : (isMediumScreen ? 19 : 17);
+  const cardDescSize = isLargeScreen ? 16 : (isMediumScreen ? 14 : 13);
+  const cardDescLineHeight = isLargeScreen ? 22 : (isMediumScreen ? 20 : 18);
+  const tagTextSize = isLargeScreen ? 12 : (isMediumScreen ? 11 : 10);
+  const linkTextSize = isLargeScreen ? 15 : (isMediumScreen ? 13 : 12);
+  const linkBtnHeight = isLargeScreen ? 44 : (isMediumScreen ? 38 : 34);
+  const imageContainerHeight = isLargeScreen ? 200 : (isMediumScreen ? 170 : 140);
+  const cardPadding = isLargeScreen ? 20 : (isMediumScreen ? 16 : 12);
+
   // Mathematically calculate precise card width to avoid wrapping errors
-  const padding = 24;
-  const gap = 20;
+  const padding = isLargeScreen ? 32 : (isMediumScreen ? 24 : 16);
+  const gap = isLargeScreen ? 28 : (isMediumScreen ? 20 : 16);
   const containerMaxWidth = 1100;
   const currentContainerWidth = Math.min(width, containerMaxWidth) - (padding * 2);
 
@@ -388,15 +423,15 @@ export default function PortfolioScreen() {
       <ScrollView 
         contentContainerStyle={[
           styles.scrollContent,
-          { maxWidth: containerMaxWidth }
+          { maxWidth: containerMaxWidth, paddingHorizontal: padding }
         ]}
         showsVerticalScrollIndicator={false}
       >
         
         {/* Title Header */}
         <View style={styles.webHeader}>
-          <Text className="text-3d-hologram" style={[styles.webTitle, { color: themeColors.text }]}>
-            Latest <Text style={{ color: themeColors.tint }}>Project</Text>
+          <Text className="text-3d-hologram" style={[styles.webTitle, { color: themeColors.text, fontSize: titleSize }]}>
+            Latest <Text style={{ color: themeColors.tint }}>Work</Text>
           </Text>
         </View>
 
@@ -418,6 +453,7 @@ export default function PortfolioScreen() {
               className="btn-outline-3d"
               style={[
                 styles.tabButton, 
+                { height: tabButtonHeight },
                 activeTab === 'projects' && { backgroundColor: themeColors.tint }
               ]}
               onPress={() => setActiveTab('projects')}
@@ -426,14 +462,14 @@ export default function PortfolioScreen() {
               <Ionicons 
                 className="icon-3d-rotate"
                 name="images-outline" 
-                size={18} 
+                size={tabTextSize + 2} 
                 color={activeTab === 'projects' ? (colorScheme === 'dark' ? '#1f242d' : '#FFFFFF') : themeColors.secondaryText} 
                 style={{ marginRight: 6 }}
               />
               <Text 
                 style={[
                   styles.tabText, 
-                  { color: activeTab === 'projects' ? (colorScheme === 'dark' ? '#1f242d' : '#FFFFFF') : themeColors.secondaryText}
+                  { color: activeTab === 'projects' ? (colorScheme === 'dark' ? '#1f242d' : '#FFFFFF') : themeColors.secondaryText, fontSize: tabTextSize }
                 ]}
               >
                 Projects
@@ -444,6 +480,7 @@ export default function PortfolioScreen() {
               className="btn-outline-3d"
               style={[
                 styles.tabButton, 
+                { height: tabButtonHeight },
                 activeTab === 'certificates' && { backgroundColor: themeColors.tint }
               ]}
               onPress={() => setActiveTab('certificates')}
@@ -452,14 +489,14 @@ export default function PortfolioScreen() {
               <Ionicons 
                 className="icon-3d-rotate"
                 name="ribbon-outline" 
-                size={18} 
+                size={tabTextSize + 2} 
                 color={activeTab === 'certificates' ? (colorScheme === 'dark' ? '#1f242d' : '#FFFFFF') : themeColors.secondaryText}
                 style={{ marginRight: 6 }}
               />
               <Text 
                 style={[
                   styles.tabText, 
-                  { color: activeTab === 'certificates' ? (colorScheme === 'dark' ? '#1f242d' : '#FFFFFF') : themeColors.secondaryText }
+                  { color: activeTab === 'certificates' ? (colorScheme === 'dark' ? '#1f242d' : '#FFFFFF') : themeColors.secondaryText, fontSize: tabTextSize }
                 ]}
               >
                 Certificates
@@ -470,12 +507,12 @@ export default function PortfolioScreen() {
           {/* Upload Button */}
           <TouchableOpacity 
             className="btn-3d"
-            style={[styles.uploadBtn, { backgroundColor: themeColors.tint, shadowColor: themeColors.tint }]}
+            style={[styles.uploadBtn, { backgroundColor: themeColors.tint, shadowColor: themeColors.tint, height: uploadBtnHeight }]}
             onPress={() => setIsUploadModalOpen(true)}
             activeOpacity={0.8}
           >
-            <Ionicons name="cloud-upload-outline" size={20} color={colorScheme === 'dark' ? '#1f242d' : '#FFFFFF'} />
-            <Text style={[styles.uploadBtnText, { color: colorScheme === 'dark' ? '#1f242d' : '#FFFFFF' }]}>Add Work</Text>
+            <Ionicons name="cloud-upload-outline" size={uploadBtnTextSize + 4} color={colorScheme === 'dark' ? '#1f242d' : '#FFFFFF'} />
+            <Text style={[styles.uploadBtnText, { color: colorScheme === 'dark' ? '#1f242d' : '#FFFFFF', fontSize: uploadBtnTextSize }]}>Add Work</Text>
           </TouchableOpacity>
         </View>
 
@@ -504,7 +541,7 @@ export default function PortfolioScreen() {
                 ]}
               >
                 {/* Full-width Image Area */}
-                <View className="image-zoom-3d" style={styles.imageContainer}>
+                <View className="image-zoom-3d" style={[styles.imageContainer, { height: imageContainerHeight }]}>
                   <Image source={project.image} style={styles.projectImage} resizeMode="cover" />
                   
                   {/* Delete Button overlay */}
@@ -524,9 +561,9 @@ export default function PortfolioScreen() {
                   </TouchableOpacity>
                 </View>
                 
-                <View className="text-pop-3d" style={styles.cardContent}>
-                  <Text className="text-3d-hologram" style={[styles.cardTitle, { color: themeColors.text }]} numberOfLines={1}>{project.title}</Text>
-                  <Text style={[styles.cardDesc, { color: themeColors.secondaryText }]} numberOfLines={2}>{project.description}</Text>
+                <View className="text-pop-3d" style={[styles.cardContent, { padding: cardPadding }]}>
+                  <Text className="text-3d-hologram" style={[styles.cardTitle, { color: themeColors.text, fontSize: cardTitleSize }]} numberOfLines={1}>{project.title}</Text>
+                  <Text style={[styles.cardDesc, { color: themeColors.secondaryText, fontSize: cardDescSize, lineHeight: cardDescLineHeight }]} numberOfLines={2}>{project.description}</Text>
                   
                   {/* Tech Tags */}
                   <View style={styles.tagsContainer}>
@@ -538,7 +575,7 @@ export default function PortfolioScreen() {
                           { backgroundColor: colorScheme === 'dark' ? '#1E293B' : '#F1F5F9' }
                         ]}
                       >
-                        <Text style={[styles.tagText, { color: themeColors.tint }]}>{tech}</Text>
+                        <Text style={[styles.tagText, { color: themeColors.tint, fontSize: tagTextSize }]}>{tech}</Text>
                       </View>
                     ))}
                   </View>
@@ -547,20 +584,20 @@ export default function PortfolioScreen() {
                   <View style={styles.linksContainer}>
                     <TouchableOpacity 
                       className="btn-outline-3d"
-                      style={[styles.linkButton, { borderColor: themeColors.tint }]}
+                      style={[styles.linkButton, { borderColor: themeColors.tint, height: linkBtnHeight }]}
                       onPress={() => openLink(project.githubUrl)}
                     >
-                      <Ionicons className="icon-3d-rotate" name="logo-github" size={14} color={themeColors.tint} />
-                      <Text style={[styles.linkText, { color: themeColors.tint }]}>GitHub</Text>
+                      <Ionicons className="icon-3d-rotate" name="logo-github" size={linkTextSize} color={themeColors.tint} />
+                      <Text style={[styles.linkText, { color: themeColors.tint, fontSize: linkTextSize }]}>GitHub</Text>
                     </TouchableOpacity>
 
                     {project.liveUrl && (
                       <TouchableOpacity 
                         className="btn-3d"
-                        style={[styles.linkButton, { backgroundColor: themeColors.tint, borderColor: themeColors.tint }]}
+                        style={[styles.linkButton, { backgroundColor: themeColors.tint, borderColor: themeColors.tint, height: linkBtnHeight }]}
                         onPress={() => openLink(project.liveUrl!)}
                       >
-                        <Text style={[styles.linkText, { color: colorScheme === 'dark' ? '#1f242d' : '#FFFFFF' }]}>Live Demo</Text>
+                        <Text style={[styles.linkText, { color: colorScheme === 'dark' ? '#1f242d' : '#FFFFFF', fontSize: linkTextSize }]}>Live Demo</Text>
                       </TouchableOpacity>
                     )}
                   </View>
@@ -600,7 +637,7 @@ export default function PortfolioScreen() {
                     setSelectedImage(cert.image);
                     setSelectedTitle(cert.title);
                   }}
-                  style={[styles.imageBtn, { backgroundColor: themeColors.background }]}
+                  style={[styles.imageBtn, { backgroundColor: themeColors.background, height: imageContainerHeight }]}
                 >
                   <Image source={cert.image} style={styles.certImage} resizeMode="contain" />
                   
@@ -631,14 +668,14 @@ export default function PortfolioScreen() {
                   </TouchableOpacity>
 
                   <View style={styles.zoomOverlay}>
-                    <Ionicons className="icon-3d-rotate" name="scan-outline" size={20} color="#FFFFFF" />
-                    <Text style={styles.zoomText}>View Large</Text>
+                    <Ionicons className="icon-3d-rotate" name="scan-outline" size={imageContainerHeight > 160 ? 20 : 16} color="#FFFFFF" />
+                    <Text style={[styles.zoomText, { fontSize: imageContainerHeight > 160 ? 10 : 8 }]}>View Large</Text>
                   </View>
                 </TouchableOpacity>
 
-                <View className="text-pop-3d" style={styles.cardContent}>
-                  <Text className="text-3d-hologram" style={[styles.cardTitle, { color: themeColors.text }]} numberOfLines={1}>{cert.title}</Text>
-                  <Text style={[styles.certSubtitle, { color: themeColors.secondaryText }]}>
+                <View className="text-pop-3d" style={[styles.cardContent, { padding: cardPadding }]}>
+                  <Text className="text-3d-hologram" style={[styles.cardTitle, { color: themeColors.text, fontSize: cardTitleSize }]} numberOfLines={1}>{cert.title}</Text>
+                  <Text style={[styles.certSubtitle, { color: themeColors.secondaryText, fontSize: cardDescSize }]} numberOfLines={1}>
                     {cert.issuer} • {cert.issueDate}
                   </Text>
 
@@ -646,21 +683,21 @@ export default function PortfolioScreen() {
                   <View style={styles.linksContainer}>
                     <TouchableOpacity 
                       className="btn-3d"
-                      style={[styles.actionBtnPrimary, { backgroundColor: themeColors.tint, shadowColor: themeColors.tint }]}
+                      style={[styles.actionBtnPrimary, { backgroundColor: themeColors.tint, shadowColor: themeColors.tint, height: linkBtnHeight }]}
                       onPress={() => handleOpenPDF(cert.pdfUrl)}
                     >
-                      <Text style={[styles.actionBtnText, { color: colorScheme === 'dark' ? '#1f242d' : '#FFFFFF' }]}>View PDF</Text>
+                      <Text style={[styles.actionBtnText, { color: colorScheme === 'dark' ? '#1f242d' : '#FFFFFF', fontSize: linkTextSize }]}>View PDF</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity 
                       className="btn-outline-3d"
-                      style={[styles.actionBtnSecondary, { borderColor: themeColors.border }]}
+                      style={[styles.actionBtnSecondary, { borderColor: themeColors.border, height: linkBtnHeight }]}
                       onPress={() => {
                         setSelectedImage(cert.image);
                         setSelectedTitle(cert.title);
                       }}
                     >
-                      <Text style={[styles.actionBtnTextSec, { color: themeColors.text }]}>Preview</Text>
+                      <Text style={[styles.actionBtnTextSec, { color: themeColors.text, fontSize: linkTextSize }]}>Preview</Text>
                     </TouchableOpacity>
                   </View>
                 </View>

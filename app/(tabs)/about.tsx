@@ -24,22 +24,50 @@ export default function AboutScreen() {
   const themeColors = Colors[colorScheme];
   const { profile } = portfolioData;
 
+  // Responsive design tokens
+  const sectionPaddingVertical = isLargeScreen ? 40 : 20;
+  const headerSize = isLargeScreen ? 56 : 38;
+  const subHeaderSize = isLargeScreen ? 26 : 20;
+  const descSize = isLargeScreen ? 20 : 15;
+  const descLineHeight = isLargeScreen ? 32 : 24;
+  const descMarginBottom = isLargeScreen ? 28 : 16;
+  const btnTextSize = isLargeScreen ? 18 : 15;
+  const btnHeight = isLargeScreen ? 56 : 46;
+  const btnRadius = isLargeScreen ? 28 : 23;
+  const avatarSize = isLargeScreen ? 420 : 300;
+  const contentPaddingVertical = isLargeScreen ? 80 : 24;
+  const contentPaddingHorizontal = isLargeScreen ? 24 : 16;
+  const aboutSectionGap = isLargeScreen ? 48 : 24;
+
   return (
     <View style={[styles.mainContainer, { backgroundColor: themeColors.background }]}>
       {Platform.OS === 'web' && (
         <style>{`
           .avatar-3d {
-            transition: transform 0.2s ease-out, box-shadow 0.6s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.6s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
             transform-style: preserve-3d;
             perspective: 1000px;
             transform: translateY(calc(var(--scroll-y) * -0.08px)) 
                        rotateY(calc(var(--scroll-y) * -0.02deg)) 
                        rotateX(calc(var(--scroll-y) * -0.015deg));
           }
+          .avatar-border-3d {
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+            transform-style: preserve-3d;
+          }
+          .avatar-img-3d {
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+          }
           .avatar-3d:hover {
-            transform: scale(1.08) rotateY(-15deg) rotateX(10deg) translateY(-4px) !important;
-            box-shadow: 0 25px 50px ${themeColors.tint}80 !important;
+            transform: scale(1.12) rotateY(-25deg) rotateX(15deg) translateY(-8px) !important;
+            box-shadow: 15px 30px 60px ${themeColors.tint}60 !important;
             border-color: ${themeColors.tint} !important;
+          }
+          .avatar-3d:hover .avatar-border-3d {
+            transform: translateZ(30px);
+          }
+          .avatar-3d:hover .avatar-img-3d {
+            transform: translateZ(60px) scale(1.08);
           }
         `}</style>
       )}
@@ -51,12 +79,12 @@ export default function AboutScreen() {
         style={styles.scrollView}
         contentContainerStyle={[
           styles.contentContainer, 
-          { maxWidth: 1100, flexGrow: 1, justifyContent: isLargeScreen ? 'center' : 'flex-start' }
+          { maxWidth: 1100, flexGrow: 1, justifyContent: isLargeScreen ? 'center' : 'flex-start', paddingVertical: contentPaddingVertical, paddingHorizontal: contentPaddingHorizontal }
         ]}
         showsVerticalScrollIndicator={false}
       >
         
-        <View style={[styles.aboutSection, { flexDirection: isLargeScreen ? 'row' : 'column', gap: 40 }]}>
+        <View style={[styles.aboutSection, { flexDirection: isLargeScreen ? 'row' : 'column', gap: aboutSectionGap, paddingVertical: sectionPaddingVertical }]}>
           
           {/* Left Avatar (glowing border - Hexagon on Web, Circle on Mobile) */}
           <View style={[styles.aboutImageContainer, { flex: isLargeScreen ? 0.8 : undefined }]}>
@@ -64,8 +92,8 @@ export default function AboutScreen() {
               <View 
                 className="avatar-3d"
                 style={{
-                  width: isLargeScreen ? 320 : 260,
-                  height: isLargeScreen ? 320 : 260,
+                  width: avatarSize,
+                  height: avatarSize,
                   filter: `drop-shadow(0 0 20px ${themeColors.tint}60)`,
                   backgroundColor: 'transparent',
                   justifyContent: 'center',
@@ -73,6 +101,7 @@ export default function AboutScreen() {
                 } as any}
               >
                 <View 
+                  className="avatar-border-3d"
                   style={{
                     width: '100%',
                     height: '100%',
@@ -93,6 +122,7 @@ export default function AboutScreen() {
                   >
                     <Image 
                       source={profile.avatar}
+                      className="avatar-img-3d"
                       style={styles.profilePic}
                       resizeMode="cover"
                     />
@@ -106,9 +136,9 @@ export default function AboutScreen() {
                   { 
                     shadowColor: themeColors.tint, 
                     borderColor: themeColors.tint,
-                    width: 260,
-                    height: 260,
-                    borderRadius: 130,
+                    width: avatarSize,
+                    height: avatarSize,
+                    borderRadius: avatarSize / 2,
                   }
                 ]}
               >
@@ -120,34 +150,34 @@ export default function AboutScreen() {
               </View>
             )}
           </View>
-
+ 
           {/* Right About Text details */}
           <View style={[styles.aboutTextContainer, { flex: isLargeScreen ? 1.2 : undefined, alignItems: isLargeScreen ? 'flex-start' : 'center' }]}>
-            <Text className="text-3d-hologram" style={[styles.aboutHeader, { color: themeColors.text }]}>
+            <Text className="text-3d-hologram" style={[styles.aboutHeader, { color: themeColors.text, fontSize: headerSize }]}>
               About <Text style={{ color: themeColors.tint }}>Me</Text>
             </Text>
-            <Text className="text-3d-hologram" style={[styles.aboutSubHeader, { color: themeColors.text }]}>
+            <Text className="text-3d-hologram" style={[styles.aboutSubHeader, { color: themeColors.text, fontSize: subHeaderSize }]}>
               Junior IT Specialist & Developer!
             </Text>
-            <Text style={[styles.aboutDescription, { color: themeColors.secondaryText, textAlign: isLargeScreen ? 'left' : 'center' }]}>
+            <Text style={[styles.aboutDescription, { color: themeColors.secondaryText, textAlign: isLargeScreen ? 'left' : 'center', fontSize: descSize, lineHeight: descLineHeight, marginBottom: descMarginBottom }]} numberOfLines={6}>
               {profile.bio}
             </Text>
-            <Text style={[styles.aboutDetails, { color: themeColors.secondaryText, textAlign: isLargeScreen ? 'left' : 'center' }]}>
+            <Text style={[styles.aboutDetails, { color: themeColors.secondaryText, textAlign: isLargeScreen ? 'left' : 'center', fontSize: descSize, lineHeight: descLineHeight, marginBottom: descMarginBottom }]}>
               Equipped with Electrical Installation & Maintenance NCII credentials alongside extensive software development, cabling, OS systems installation, and database management training.
             </Text>
-
+ 
             <TouchableOpacity 
               className="btn-3d"
-              style={[styles.neonButton, { backgroundColor: themeColors.tint, shadowColor: themeColors.tint }]}
+              style={[styles.neonButton, { backgroundColor: themeColors.tint, shadowColor: themeColors.tint, height: btnHeight, borderRadius: btnRadius }]}
               onPress={() => router.push('/services')}
               activeOpacity={0.8}
             >
-              <Text style={[styles.neonButtonText, { color: colorScheme === 'dark' ? '#1f242d' : '#ffffff' }]}>Read More</Text>
+              <Text style={[styles.neonButtonText, { color: colorScheme === 'dark' ? '#1f242d' : '#ffffff', fontSize: btnTextSize }]}>Read More</Text>
             </TouchableOpacity>
           </View>
-
+ 
         </View>
-
+ 
       </ScrollView>
     </View>
   );
