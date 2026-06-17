@@ -6,13 +6,18 @@ A premium, modern cross-platform portfolio application built using **React Nativ
 
 ## 🌟 Key Features
 
-* **🏠 Home / Hero Screen:** A premium developer landing card showcasing professional profile, bio, responsive social links, live stats (years of experience, completed projects), and CTA redirects.
-* **💼 Services Screen:** Displays specialized services (Mobile, Web, Design, consulting) in custom cards, featuring itemized deliverables and quick-action inquiries.
+* **🏠 Home / Hero Screen:** A premium developer landing card showcasing professional profile, bio, responsive social links (Facebook, Instagram, LinkedIn, GitHub, Twitter), live stats (certifications, technical skills, IT projects), and CTA redirects.
+* **ℹ️ About Screen:** A dedicated bio screen featuring a 3D-perspective rotating interactive polygon profile avatar (for Web), detailed background story, and core qualification descriptions.
+* **💼 Services Screen:** Displays specialized services (Networking & IT Infrastructure, Front-End Development, System Administration & OS Support, Hardware & Electrical Maintenance) in custom cards, featuring itemized deliverables and quick-action inquiries.
 * **📂 Portfolio Screen (Projects & Certificates):**
-  * **Projects:** Gallery with image previews, project summaries, tech stack badges, and links to GitHub and Live Demos.
-  * **Certificates:** Showcases certifications with a full-screen image zoom viewer modal and a direct PDF credential link (using `expo-web-browser` for native browser integrations).
-* **✉️ Contact Screen:** Dynamic contact information cards and a fully validated interactive form (Name, Email, Subject, Message) supporting route-parameter pre-filling from Services and animated success confirmations.
-* **🌓 Theme Support:** Built-in Light and Dark Mode options conforming to system colors.
+  - **Dynamic Portfolio Management:** Supports adding, editing, and deleting projects or certificates in real-time.
+  - **Image & PDF Uploads:** Features a local file picker that converts image screenshots and credential PDFs into Base64 format for self-contained persistence.
+  - **Interactive Previews:** Gallery with image previews, tech stack badges, GitHub/Live demo links, and a full-screen image zoom viewer modal for certificates with direct PDF credential links.
+* **⚙️ Settings & Theme Customization:**
+  - Accessible via the responsive Web Header or Mobile Navigation.
+  - **Persistent Theme Switcher:** Toggles between Light and Dark mode globally, saving preference in `localStorage` to prevent style flicker on reload.
+  - **Data Reset:** Lets users wipe all custom modifications and restore the original portfolio template defaults.
+* **🔔 Premium Web Alerts:** Integrates `SweetAlert2` on browsers for modern, visually polished delete confirmations and success notifications.
 
 ---
 
@@ -23,6 +28,7 @@ The application relies on the following key dependencies:
 * **Core Platform:** React Native `~0.85.3`, Expo `~56.0.12`, React `19.2.3`
 * **Routing:** `expo-router` `~56.2.11` (Static and dynamic file-based routing)
 * **Web Integration:** `react-native-web` `~0.21.0` (Ensures compilation and rendering on web browsers)
+* **Web UI Interactions:** `sweetalert2` `^11.26.25` (For premium popup confirmations and alerts)
 * **Interactions & Icons:** `@expo/vector-icons` (Ionicons for cross-platform visual consistency), `expo-web-browser` (for PDF/links navigation)
 * **Language System:** TypeScript `~6.0.3` for type safety
 
@@ -40,8 +46,9 @@ my-portfolio/
 │   ├── (tabs)/                    # Tab Navigator Group
 │   │   ├── _layout.tsx            # Bottom Tabs Navigator & Icon Setup
 │   │   ├── index.tsx              # Home / Hero Screen
+│   │   ├── about.tsx              # About Me Screen with 3D Visuals
 │   │   ├── services.tsx           # Services Screen
-│   │   ├── portfolio.tsx          # Portfolio (Projects & Certificates) Screen
+│   │   ├── portfolio.tsx          # Interactive Portfolio Management Screen
 │   │   └── contacts.tsx           # Contacts Screen with Form & Validation
 │   ├── +html.tsx                  # Web template layout config
 │   ├── +not-found.tsx             # 404 Route Screen
@@ -53,8 +60,13 @@ my-portfolio/
 │   └── pdfs/                      # Local PDF credentials placeholders
 ├── src/                           # Logic & Reusable Elements
 │   ├── components/                # UI Components & Context Hooks
+│   │   ├── DeleteConfirmation.ts  # Native delete alert confirmation
+│   │   ├── DeleteConfirmation.web.ts # SweetAlert2 web confirmation
+│   │   ├── SettingsModal.tsx      # Theme and data reset modal
 │   │   ├── Themed.tsx             # Theme-aware Views & Text components
-│   │   ├── useColorScheme.ts      # Device theme configuration hook
+│   │   ├── WebHeader.tsx          # Responsive Web Header Navigation
+│   │   ├── useColorScheme.ts      # Theme status manager (localStorage synced)
+│   │   ├── useColorScheme.web.ts  # SSR-safe Web theme manager
 │   │   └── ...
 │   ├── constants/                 # Central data & theme styling
 │   │   ├── Colors.ts              # Curated light and dark mode colors
@@ -102,8 +114,13 @@ To update the website with your own profile, projects, and certificates:
 1. **Update Portfolio Data:**
    Open `src/constants/portfolioData.ts` and modify the text, social links, stats, services, and list details.
    
-2. **Replace Project and Certificate Images:**
+2. **In-App Management (Web/Mobile):**
+   * Use the **Upload Work** form directly in the app's Portfolio section to add new projects and certificates.
+   * Hover or tap on items in the Portfolio section to display the edit/delete options.
+   * Settings (Theme preferences and Data reset) can be configured via the gear icon in the header.
+
+3. **Upload custom assets manually:**
    Drop your custom images (e.g. `.png` or `.jpg`) inside `assets/images/` and update the `require(...)` statements inside `src/constants/portfolioData.ts`.
-   
-3. **Upload Certificate PDFs:**
+
+4. **Upload Certificate PDFs:**
    Place your actual certificate PDFs inside `assets/pdfs/` and link them. For absolute cross-platform reliability on mobile, host the PDFs online (e.g., Google Drive, Cloudinary) and reference the URL in the `pdfUrl` field.
