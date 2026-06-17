@@ -42,6 +42,31 @@ export default function ServicesScreen() {
 
   return (
     <View style={[styles.mainContainer, { backgroundColor: themeColors.background }]}>
+      {/* 3D Animations for Services Cards */}
+      {Platform.OS === 'web' && (
+        <style>{`
+          .service-card-3d {
+            transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+          }
+          .service-card-3d:hover {
+            transform: translateY(-10px) rotateX(3deg) rotateY(-3deg) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 238, 255, 0.2) !important;
+            border-color: #00eeff !important;
+          }
+          .service-card-3d:hover .icon-3d {
+            transform: translateZ(40px) scale(1.1);
+          }
+          .service-card-3d:hover .text-3d {
+            transform: translateZ(25px);
+          }
+          .icon-3d, .text-3d {
+            transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+          }
+        `}</style>
+      )}
+
       {/* Custom Sticky Header for Web */}
       <WebHeader activeTab="services" />
 
@@ -55,14 +80,14 @@ export default function ServicesScreen() {
       >
         {/* Title Header */}
         <View style={styles.webHeader}>
-          <Text style={[styles.webTitle, { color: themeColors.text }]}>
+          <Text className="text-3d-hologram" style={[styles.webTitle, { color: themeColors.text }]}>
             Our <Text style={{ color: themeColors.tint }}>Services</Text>
           </Text>
           <Text style={[styles.headerSubtitle, { color: themeColors.secondaryText }]}>
             High-impact engineering solutions designed to grow your business.
           </Text>
         </View>
-
+ 
         <View style={[
           styles.servicesGrid, 
           { 
@@ -81,6 +106,7 @@ export default function ServicesScreen() {
             return (
               <View 
                 key={service.id} 
+                className="service-card-3d"
                 style={[
                   styles.serviceCard, 
                   { 
@@ -91,18 +117,18 @@ export default function ServicesScreen() {
                 ]}
               >
                 {/* Centered Icon */}
-                <View style={styles.iconContainer}>
-                  <Ionicons name={iconName} size={36} color={themeColors.tint} />
+                <View className="icon-3d" style={styles.iconContainer}>
+                  <Ionicons className="icon-3d-rotate" name={iconName} size={36} color={themeColors.tint} />
                 </View>
-
+ 
                 {/* Title */}
-                <Text style={[styles.cardTitle, { color: themeColors.text }]}>{service.title}</Text>
-
+                <Text className="text-3d text-3d-hologram" style={[styles.cardTitle, { color: themeColors.text }]}>{service.title}</Text>
+ 
                 {/* Description */}
                 <Text style={[styles.cardDescription, { color: themeColors.secondaryText }]}>
                   {service.description}
                 </Text>
-
+ 
                 {/* Features List */}
                 <View style={styles.featuresContainer}>
                   {service.features.map((feature, idx) => (
@@ -112,9 +138,10 @@ export default function ServicesScreen() {
                     </View>
                   ))}
                 </View>
-
+ 
                 {/* Action Button - Neon Pill Style with shadow glow */}
                 <TouchableOpacity
+                  className="btn-3d"
                   style={[styles.inquireButton, { backgroundColor: themeColors.tint, shadowColor: themeColors.tint }]}
                   onPress={() => handleInquiry(service.title)}
                   activeOpacity={0.8}

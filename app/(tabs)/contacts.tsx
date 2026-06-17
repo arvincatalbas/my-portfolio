@@ -91,7 +91,7 @@ export default function ContactsScreen() {
       >
         {/* Title Header */}
         <View style={styles.webHeader}>
-          <Text style={[styles.webTitle, { color: themeColors.text }]}>
+          <Text className="text-3d-hologram" style={[styles.webTitle, { color: themeColors.text }]}>
             Contact <Text style={{ color: themeColors.tint }}>Me!</Text>
           </Text>
           <Text style={[styles.headerSubtitle, { color: themeColors.secondaryText }]}>
@@ -102,18 +102,20 @@ export default function ContactsScreen() {
         {/* Contact Info Cards */}
         <View style={styles.infoRow}>
           <TouchableOpacity 
+            className="btn-outline-3d"
             style={[styles.infoCard, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}
             onPress={() => openUrl(`mailto:${profile.email}`)}
           >
-            <Ionicons name="mail-outline" size={20} color={themeColors.tint} />
+            <Ionicons className="icon-3d-rotate" name="mail-outline" size={20} color={themeColors.tint} />
             <Text style={[styles.infoVal, { color: themeColors.text }]} numberOfLines={1}>{profile.email}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
+            className="btn-outline-3d"
             style={[styles.infoCard, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}
             onPress={() => openUrl(`tel:${profile.phone}`)}
           >
-            <Ionicons name="call-outline" size={20} color={themeColors.tint} />
+            <Ionicons className="icon-3d-rotate" name="call-outline" size={20} color={themeColors.tint} />
             <Text style={[styles.infoVal, { color: themeColors.text }]}>{profile.phone}</Text>
           </TouchableOpacity>
         </View>
@@ -122,9 +124,9 @@ export default function ContactsScreen() {
           /* Submission Success State */
           <View style={[styles.successCard, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}>
             <View style={[styles.successIconCircle, { backgroundColor: themeColors.accent + '20' }]}>
-              <Ionicons name="checkmark-circle" size={48} color={themeColors.accent} />
+              <Ionicons className="icon-3d-rotate" name="checkmark-circle" size={48} color={themeColors.accent} />
             </View>
-            <Text style={[styles.successTitle, { color: themeColors.text }]}>Message Sent!</Text>
+            <Text className="text-3d-hologram" style={[styles.successTitle, { color: themeColors.text }]}>Message Sent!</Text>
             <Text style={[styles.successDesc, { color: themeColors.secondaryText }]}>
               Thank you, {submittedData?.name}. I will review your message and reply back to {submittedData?.email} within 24 hours.
             </Text>
@@ -137,6 +139,7 @@ export default function ContactsScreen() {
             </View>
 
             <TouchableOpacity 
+              className="btn-3d"
               style={[styles.resetButton, { backgroundColor: themeColors.tint }]}
               onPress={handleResetForm}
               activeOpacity={0.8}
@@ -261,6 +264,7 @@ export default function ContactsScreen() {
             {/* Submit Button - Neon Cyan Centered with drop shadow glow */}
             <View style={styles.btnCenterWrapper}>
               <TouchableOpacity 
+                className="btn-3d"
                 style={[styles.submitButton, { backgroundColor: themeColors.tint, shadowColor: themeColors.tint }]}
                 onPress={handleSubmit}
                 activeOpacity={0.8}
@@ -351,11 +355,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderWidth: 1.5,
     fontSize: 17,
-    ...Platform.select({
-      web: {
-        outlineStyle: 'none',
-      } as any,
-    }),
   },
   messageInput: {
     height: 160,

@@ -6,6 +6,7 @@ export interface Project {
   image: any;
   githubUrl: string;
   liveUrl?: string;
+  isUploaded?: boolean;
 }
 
 export interface Certificate {
@@ -15,6 +16,7 @@ export interface Certificate {
   issueDate: string;
   image: any;
   pdfUrl: string;
+  isUploaded?: boolean;
 }
 
 export interface Service {
@@ -28,15 +30,18 @@ export interface Service {
 export const portfolioData = {
   profile: {
     name: 'Arvin F. Catalbas',
-    title: 'IT Support Associate & Junior Developer',
+    title: 'Network/IT Product Associate & Web Developer',
     avatar: require('../../assets/images/profile_avatar.png'),
     bio: 'Detail-oriented Information Technology graduate with a strong foundation in network infrastructure, device configuration, and software development. Seeking an entry-level IT role (such as Network Support Associate, Systems Administrator, or Junior Developer) to leverage technical diagnostics, networking, and front-end development competencies.',
     location: 'Sorsogon, Philippines',
-    email: 'arvin202020.ac@gmail.com',
+    email: 'arvin9999990@gmail.com',
     phone: '09773105952',
+    facebook: 'https://facebook.com/senemorph',
     github: 'https://github.com/arvincatalbas',
+    instagram: 'https://instagram.com/ar.vinnn09',
     linkedin: 'https://linkedin.com/in/arvincatalbas',
     twitter: 'https://twitter.com/arvincatalbas',
+    resumeUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
     stats: [
       { label: 'Certifications', value: '9+' },
       { label: 'Technical Skills', value: '12+' },
@@ -122,14 +127,6 @@ export const portfolioData = {
       issuer: 'Cisco Networking Academy',
       issueDate: 'Certified',
       image: require('../../assets/images/certificate_networking.png'),
-      pdfUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-    },
-    {
-      id: '4',
-      title: 'Claude Code in Action',
-      issuer: 'Apply AI Academy',
-      issueDate: 'Certified',
-      image: require('../../assets/images/certificate_claude.png'),
       pdfUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
     }
   ] as Certificate[],

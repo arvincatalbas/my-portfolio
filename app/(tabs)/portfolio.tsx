@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, ScrollView, Image, TouchableOpacity, Linking, Platform, Modal, Dimensions, useWindowDimensions, TextInput } from 'react-native';
 import { Text, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
@@ -7,13 +7,58 @@ import { portfolioData, Project, Certificate } from '@/constants/portfolioData';
 import { Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
 import WebHeader from '@/components/WebHeader';
+import { showDeleteConfirmation } from '@/components/DeleteConfirmation';
 
 const { height } = Dimensions.get('window');
 
 export default function PortfolioScreen() {
-  // Initialize projects and certificates in State for CRUD operations
-  const [projects, setProjects] = useState<Project[]>(portfolioData.projects);
-  const [certificates, setCertificates] = useState<Certificate[]>(portfolioData.certificates);
+  const isWeb = Platform.OS === 'web';
+
+  // Initialize projects and certificates in State for CRUD operations (with localStorage persistence)
+  const [projects, setProjects] = useState<Project[]>(() => {
+    if (Platform.OS === 'web') {
+      try {
+        const stored = localStorage.getItem('portfolio_projects');
+        if (stored) return JSON.parse(stored);
+      } catch (e) {
+        console.error("Failed to load projects from localStorage", e);
+      }
+    }
+    return portfolioData.projects;
+  });
+
+  const [certificates, setCertificates] = useState<Certificate[]>(() => {
+    if (Platform.OS === 'web') {
+      try {
+        const stored = localStorage.getItem('portfolio_certificates');
+        if (stored) return JSON.parse(stored);
+      } catch (e) {
+        console.error("Failed to load certificates from localStorage", e);
+      }
+    }
+    return portfolioData.certificates;
+  });
+
+  // Persist state updates to localStorage
+  useEffect(() => {
+    if (isWeb) {
+      try {
+        localStorage.setItem('portfolio_projects', JSON.stringify(projects));
+      } catch (e) {
+        console.error("Failed to save projects to localStorage", e);
+      }
+    }
+  }, [projects]);
+
+  useEffect(() => {
+    if (isWeb) {
+      try {
+        localStorage.setItem('portfolio_certificates', JSON.stringify(certificates));
+      } catch (e) {
+        console.error("Failed to save certificates to localStorage", e);
+      }
+    }
+  }, [certificates]);
 
   const [activeTab, setActiveTab] = useState<'projects' | 'certificates'>('projects');
   
@@ -31,6 +76,9 @@ export default function PortfolioScreen() {
   const [newTags, setNewTags] = useState('');
   const [newImgUrl, setNewImgUrl] = useState('');
   const [newPdfUrl, setNewPdfUrl] = useState('');
+  
+  // Track item being edited
+  const [editingItem, setEditingItem] = useState<{ id: string; type: 'project' | 'certificate' } | null>(null);
 
   const { width } = useWindowDimensions();
   const isLargeScreen = width > 990;
@@ -39,11 +87,76 @@ export default function PortfolioScreen() {
   const colorScheme = useColorScheme() ?? 'light';
   const themeColors = Colors[colorScheme];
 
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      const timer = setTimeout(() => {
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add('in-view');
+              }
+            });
+          },
+          { threshold: 0.05 }
+        );
+        
+        const cards = document.querySelectorAll('.portfolio-card-3d');
+        cards.forEach((card) => observer.observe(card));
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [projects, certificates, activeTab]);
+
   const openLink = (url: string) => {
     Linking.openURL(url).catch((err) => console.error("Couldn't open URL", err));
   };
 
+  const handlePickFile = (type: 'image' | 'pdf') => {
+    if (Platform.OS === 'web') {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = type === 'image' ? 'image/*' : 'application/pdf';
+      input.onchange = (e: any) => {
+        const file = e.target.files?.[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = () => {
+            if (type === 'image') {
+              setNewImgUrl(reader.result as string);
+            } else {
+              setNewPdfUrl(reader.result as string);
+            }
+          };
+          reader.readAsDataURL(file);
+        }
+      };
+      input.click();
+    } else {
+      alert("Local file picker is only supported on the Web preview.");
+    }
+  };
+
   const handleOpenPDF = async (pdfUrl: string) => {
+    if (Platform.OS === 'web' && pdfUrl.startsWith('data:application/pdf;base64,')) {
+      try {
+        const base64Data = pdfUrl.split(',')[1];
+        const binaryString = window.atob(base64Data);
+        const len = binaryString.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        const blob = new Blob([bytes], { type: 'application/pdf' });
+        const blobUrl = URL.createObjectURL(blob);
+        window.open(blobUrl, '_blank');
+        return;
+      } catch (e) {
+        console.error("Failed to open local base64 PDF", e);
+      }
+    }
+
     try {
       await WebBrowser.openBrowserAsync(pdfUrl);
     } catch (error) {
@@ -52,50 +165,50 @@ export default function PortfolioScreen() {
     }
   };
 
-  // Delete an item from the list
+  // Delete an item from the list with confirmation check
   const handleDelete = (id: string, type: 'project' | 'certificate') => {
-    if (type === 'project') {
-      setProjects(prev => prev.filter(p => p.id !== id));
-    } else {
-      setCertificates(prev => prev.filter(c => c.id !== id));
-    }
+    const title = type === 'project' ? 'Project' : 'Certificate';
+    
+    showDeleteConfirmation({
+      title: `Delete ${title}`,
+      text: `Are you sure you want to delete this ${title.toLowerCase()}?`,
+      isDark: colorScheme === 'dark',
+      onConfirm: () => {
+        if (type === 'project') {
+          setProjects(prev => prev.filter(p => p.id !== id));
+        } else {
+          setCertificates(prev => prev.filter(c => c.id !== id));
+        }
+      }
+    });
   };
 
-  // Create/Upload a new item
-  const handleUploadSubmit = () => {
-    if (!newTitle.trim()) return;
-
-    const newId = Date.now().toString();
-    const imageAsset = newImgUrl.trim() 
-      ? { uri: newImgUrl.trim() } 
-      : (uploadType === 'project' 
-          ? require('../../assets/images/project_web.png') // default mockup
-          : require('../../assets/images/certificate_claude.png'));
-
-    if (uploadType === 'project') {
-      const newProj: Project = {
-        id: newId,
-        title: newTitle.trim(),
-        description: newDesc.trim() || 'No description provided.',
-        techStack: newTags.split(',').map(t => t.trim()).filter(t => t !== ''),
-        image: imageAsset,
-        githubUrl: 'https://github.com/arvincatalbas',
-        liveUrl: 'https://github.com/arvincatalbas',
-      };
-      setProjects(prev => [newProj, ...prev]);
+  // Start editing an item - pre-fill fields and toggle modal mode
+  const handleStartEdit = (item: any, type: 'project' | 'certificate') => {
+    setUploadType(type);
+    setEditingItem({ id: item.id, type });
+    setNewTitle(item.title);
+    
+    if (type === 'project') {
+      setNewDesc(item.description || '');
+      setNewTags(item.techStack ? item.techStack.join(', ') : '');
     } else {
-      const newCert: Certificate = {
-        id: newId,
-        title: newTitle.trim(),
-        issuer: newIssuer.trim() || 'Self-Issued',
-        issueDate: newDate.trim() || 'Certified',
-        image: imageAsset,
-        pdfUrl: newPdfUrl.trim() || 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-      };
-      setCertificates(prev => [newCert, ...prev]);
+      setNewIssuer(item.issuer || '');
+      setNewDate(item.issueDate || '');
+      setNewPdfUrl(item.pdfUrl || '');
     }
+    
+    if (item.image && item.image.uri) {
+      setNewImgUrl(item.image.uri);
+    } else {
+      setNewImgUrl('');
+    }
+    
+    setIsUploadModalOpen(true);
+  };
 
-    // Reset fields
+  // Reset fields and close modal
+  const handleCloseModal = () => {
     setNewTitle('');
     setNewDesc('');
     setNewIssuer('');
@@ -103,7 +216,87 @@ export default function PortfolioScreen() {
     setNewTags('');
     setNewImgUrl('');
     setNewPdfUrl('');
+    setEditingItem(null);
     setIsUploadModalOpen(false);
+  };
+
+  // Create/Upload or Save edited item
+  const handleUploadSubmit = () => {
+    if (!newTitle.trim()) return;
+
+    if (editingItem) {
+      const { id, type } = editingItem;
+      if (type === 'project') {
+        setProjects(prev => prev.map(p => {
+          if (p.id === id) {
+            const updatedImage = newImgUrl.trim() 
+              ? { uri: newImgUrl.trim() } 
+              : p.image;
+              
+            return {
+              ...p,
+              title: newTitle.trim(),
+              description: newDesc.trim() || 'No description provided.',
+              techStack: newTags.split(',').map(t => t.trim()).filter(t => t !== ''),
+              image: updatedImage,
+            };
+          }
+          return p;
+        }));
+      } else {
+        setCertificates(prev => prev.map(c => {
+          if (c.id === id) {
+            const updatedImage = newImgUrl.trim() 
+              ? { uri: newImgUrl.trim() } 
+              : c.image;
+              
+            return {
+              ...c,
+              title: newTitle.trim(),
+              issuer: newIssuer.trim() || 'Self-Issued',
+              issueDate: newDate.trim() || 'Certified',
+              image: updatedImage,
+              pdfUrl: newPdfUrl.trim() || c.pdfUrl,
+            };
+          }
+          return c;
+        }));
+      }
+    } else {
+      const newId = Date.now().toString();
+      const imageAsset = newImgUrl.trim() 
+        ? { uri: newImgUrl.trim() } 
+        : (uploadType === 'project' 
+            ? require('../../assets/images/project_web.png') // default mockup
+            : require('../../assets/images/certificate_claude.png'));
+
+      if (uploadType === 'project') {
+        const newProj: Project = {
+          id: newId,
+          title: newTitle.trim(),
+          description: newDesc.trim() || 'No description provided.',
+          techStack: newTags.split(',').map(t => t.trim()).filter(t => t !== ''),
+          image: imageAsset,
+          githubUrl: 'https://github.com/arvincatalbas',
+          liveUrl: 'https://github.com/arvincatalbas',
+          isUploaded: true,
+        };
+        setProjects(prev => [newProj, ...prev]);
+      } else {
+        const newCert: Certificate = {
+          id: newId,
+          title: newTitle.trim(),
+          issuer: newIssuer.trim() || 'Self-Issued',
+          issueDate: newDate.trim() || 'Certified',
+          image: imageAsset,
+          pdfUrl: newPdfUrl.trim() || 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+          isUploaded: true,
+        };
+        setCertificates(prev => [newCert, ...prev]);
+      }
+    }
+
+    handleCloseModal();
   };
 
   // Mathematically calculate precise card width to avoid wrapping errors
@@ -124,6 +317,70 @@ export default function PortfolioScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
+      {/* 3D Animations for Portfolio Cards */}
+      {Platform.OS === 'web' && (
+        <style>{`
+          .portfolio-card-3d {
+            opacity: 0;
+            transform: translateY(40px) rotateX(8deg) scale(0.96);
+            transition: opacity 0.8s cubic-bezier(0.25, 0.8, 0.25, 1), 
+                        transform 0.8s cubic-bezier(0.25, 0.8, 0.25, 1),
+                        border-color 0.3s ease,
+                        box-shadow 0.3s ease !important;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+          }
+          .portfolio-card-3d.in-view {
+            opacity: 1;
+            transform: translateY(0px) rotateX(0deg) scale(1);
+          }
+          .portfolio-card-3d.in-view:hover {
+            transform: translateY(-8px) rotateX(2.5deg) rotateY(-2.5deg) scale(1.01) !important;
+            box-shadow: 0 15px 35px ${themeColors.tint}2e !important;
+            border-color: ${themeColors.tint} !important;
+          }
+          .portfolio-card-3d:hover .image-zoom-3d {
+            transform: translateZ(30px) scale(1.03);
+          }
+          .portfolio-card-3d:hover .text-pop-3d {
+            transform: translateZ(15px);
+          }
+          .image-zoom-3d, .text-pop-3d {
+            transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+          }
+
+          /* SweetAlert Premium Theme Styles */
+          .swal2-container {
+            background-color: rgba(0, 0, 0, 0.25) !important;
+            backdrop-filter: blur(4px) !important;
+            -webkit-backdrop-filter: blur(4px) !important;
+          }
+          .swal2-popup.swal-premium-popup {
+            border-radius: 24px !important;
+            border: 1px solid ${themeColors.border} !important;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35) !important;
+            font-family: 'Outfit', 'Montserrat', sans-serif !important;
+          }
+          .swal2-styled.swal2-confirm {
+            border-radius: 12px !important;
+            font-family: 'Outfit', 'Montserrat', sans-serif !important;
+            font-weight: 600 !important;
+            padding: 10px 24px !important;
+            font-size: 15px !important;
+          }
+          .swal2-styled.swal2-cancel {
+            border-radius: 12px !important;
+            font-family: 'Outfit', 'Montserrat', sans-serif !important;
+            font-weight: 600 !important;
+            padding: 10px 24px !important;
+            font-size: 15px !important;
+          }
+          .swal2-icon {
+            border-width: 3px !important;
+          }
+        `}</style>
+      )}
+
       {/* Custom Sticky Header for Web */}
       <WebHeader activeTab="portfolio" />
 
@@ -138,7 +395,7 @@ export default function PortfolioScreen() {
         
         {/* Title Header */}
         <View style={styles.webHeader}>
-          <Text style={[styles.webTitle, { color: themeColors.text }]}>
+          <Text className="text-3d-hologram" style={[styles.webTitle, { color: themeColors.text }]}>
             Latest <Text style={{ color: themeColors.tint }}>Project</Text>
           </Text>
         </View>
@@ -158,6 +415,7 @@ export default function PortfolioScreen() {
             }
           ]}>
             <TouchableOpacity 
+              className="btn-outline-3d"
               style={[
                 styles.tabButton, 
                 activeTab === 'projects' && { backgroundColor: themeColors.tint }
@@ -166,6 +424,7 @@ export default function PortfolioScreen() {
               activeOpacity={0.8}
             >
               <Ionicons 
+                className="icon-3d-rotate"
                 name="images-outline" 
                 size={18} 
                 color={activeTab === 'projects' ? (colorScheme === 'dark' ? '#1f242d' : '#FFFFFF') : themeColors.secondaryText} 
@@ -182,6 +441,7 @@ export default function PortfolioScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity 
+              className="btn-outline-3d"
               style={[
                 styles.tabButton, 
                 activeTab === 'certificates' && { backgroundColor: themeColors.tint }
@@ -190,6 +450,7 @@ export default function PortfolioScreen() {
               activeOpacity={0.8}
             >
               <Ionicons 
+                className="icon-3d-rotate"
                 name="ribbon-outline" 
                 size={18} 
                 color={activeTab === 'certificates' ? (colorScheme === 'dark' ? '#1f242d' : '#FFFFFF') : themeColors.secondaryText}
@@ -208,6 +469,7 @@ export default function PortfolioScreen() {
 
           {/* Upload Button */}
           <TouchableOpacity 
+            className="btn-3d"
             style={[styles.uploadBtn, { backgroundColor: themeColors.tint, shadowColor: themeColors.tint }]}
             onPress={() => setIsUploadModalOpen(true)}
             activeOpacity={0.8}
@@ -231,6 +493,7 @@ export default function PortfolioScreen() {
             {projects.map((project: Project) => (
               <View 
                 key={project.id} 
+                className="portfolio-card-3d"
                 style={[
                   styles.card, 
                   { 
@@ -241,7 +504,7 @@ export default function PortfolioScreen() {
                 ]}
               >
                 {/* Full-width Image Area */}
-                <View style={styles.imageContainer}>
+                <View className="image-zoom-3d" style={styles.imageContainer}>
                   <Image source={project.image} style={styles.projectImage} resizeMode="cover" />
                   
                   {/* Delete Button overlay */}
@@ -249,12 +512,20 @@ export default function PortfolioScreen() {
                     style={styles.deleteOverlay}
                     onPress={() => handleDelete(project.id, 'project')}
                   >
-                    <Ionicons name="trash" size={18} color="#EF4444" />
+                    <Ionicons className="icon-3d-rotate" name="trash" size={18} color="#EF4444" />
+                  </TouchableOpacity>
+
+                  {/* Edit Button overlay */}
+                  <TouchableOpacity 
+                    style={styles.editOverlay}
+                    onPress={() => handleStartEdit(project, 'project')}
+                  >
+                    <Ionicons className="icon-3d-rotate" name="create-outline" size={18} color={themeColors.tint} />
                   </TouchableOpacity>
                 </View>
                 
-                <View style={styles.cardContent}>
-                  <Text style={[styles.cardTitle, { color: themeColors.text }]} numberOfLines={1}>{project.title}</Text>
+                <View className="text-pop-3d" style={styles.cardContent}>
+                  <Text className="text-3d-hologram" style={[styles.cardTitle, { color: themeColors.text }]} numberOfLines={1}>{project.title}</Text>
                   <Text style={[styles.cardDesc, { color: themeColors.secondaryText }]} numberOfLines={2}>{project.description}</Text>
                   
                   {/* Tech Tags */}
@@ -275,15 +546,17 @@ export default function PortfolioScreen() {
                   {/* Links */}
                   <View style={styles.linksContainer}>
                     <TouchableOpacity 
+                      className="btn-outline-3d"
                       style={[styles.linkButton, { borderColor: themeColors.tint }]}
                       onPress={() => openLink(project.githubUrl)}
                     >
-                      <Ionicons name="logo-github" size={14} color={themeColors.tint} />
+                      <Ionicons className="icon-3d-rotate" name="logo-github" size={14} color={themeColors.tint} />
                       <Text style={[styles.linkText, { color: themeColors.tint }]}>GitHub</Text>
                     </TouchableOpacity>
 
                     {project.liveUrl && (
                       <TouchableOpacity 
+                        className="btn-3d"
                         style={[styles.linkButton, { backgroundColor: themeColors.tint, borderColor: themeColors.tint }]}
                         onPress={() => openLink(project.liveUrl!)}
                       >
@@ -309,6 +582,7 @@ export default function PortfolioScreen() {
             {certificates.map((cert: Certificate) => (
               <View 
                 key={cert.id} 
+                className="portfolio-card-3d"
                 style={[
                   styles.card, 
                   { 
@@ -320,31 +594,50 @@ export default function PortfolioScreen() {
               >
                 {/* Certificate Preview Image */}
                 <TouchableOpacity 
+                  className="image-zoom-3d"
                   activeOpacity={0.9}
                   onPress={() => {
                     setSelectedImage(cert.image);
                     setSelectedTitle(cert.title);
                   }}
-                  style={styles.imageBtn}
+                  style={[styles.imageBtn, { backgroundColor: themeColors.background }]}
                 >
                   <Image source={cert.image} style={styles.certImage} resizeMode="contain" />
                   
                   {/* Delete Button overlay */}
                   <TouchableOpacity 
                     style={styles.deleteOverlay}
-                    onPress={() => handleDelete(cert.id, 'certificate')}
+                    onPress={(e: any) => {
+                      if (Platform.OS === 'web' && e && e.stopPropagation) {
+                        e.stopPropagation();
+                      }
+                      handleDelete(cert.id, 'certificate');
+                    }}
                   >
-                    <Ionicons name="trash" size={18} color="#EF4444" />
+                    <Ionicons className="icon-3d-rotate" name="trash" size={18} color="#EF4444" />
+                  </TouchableOpacity>
+
+                  {/* Edit Button overlay */}
+                  <TouchableOpacity 
+                    style={styles.editOverlay}
+                    onPress={(e: any) => {
+                      if (Platform.OS === 'web' && e && e.stopPropagation) {
+                        e.stopPropagation();
+                      }
+                      handleStartEdit(cert, 'certificate');
+                    }}
+                  >
+                    <Ionicons className="icon-3d-rotate" name="create-outline" size={18} color={themeColors.tint} />
                   </TouchableOpacity>
 
                   <View style={styles.zoomOverlay}>
-                    <Ionicons name="scan-outline" size={20} color="#FFFFFF" />
+                    <Ionicons className="icon-3d-rotate" name="scan-outline" size={20} color="#FFFFFF" />
                     <Text style={styles.zoomText}>View Large</Text>
                   </View>
                 </TouchableOpacity>
 
-                <View style={styles.cardContent}>
-                  <Text style={[styles.cardTitle, { color: themeColors.text }]} numberOfLines={1}>{cert.title}</Text>
+                <View className="text-pop-3d" style={styles.cardContent}>
+                  <Text className="text-3d-hologram" style={[styles.cardTitle, { color: themeColors.text }]} numberOfLines={1}>{cert.title}</Text>
                   <Text style={[styles.certSubtitle, { color: themeColors.secondaryText }]}>
                     {cert.issuer} • {cert.issueDate}
                   </Text>
@@ -352,6 +645,7 @@ export default function PortfolioScreen() {
                   {/* Actions */}
                   <View style={styles.linksContainer}>
                     <TouchableOpacity 
+                      className="btn-3d"
                       style={[styles.actionBtnPrimary, { backgroundColor: themeColors.tint, shadowColor: themeColors.tint }]}
                       onPress={() => handleOpenPDF(cert.pdfUrl)}
                     >
@@ -359,6 +653,7 @@ export default function PortfolioScreen() {
                     </TouchableOpacity>
 
                     <TouchableOpacity 
+                      className="btn-outline-3d"
                       style={[styles.actionBtnSecondary, { borderColor: themeColors.border }]}
                       onPress={() => {
                         setSelectedImage(cert.image);
@@ -416,42 +711,46 @@ export default function PortfolioScreen() {
         visible={isUploadModalOpen}
         transparent={true}
         animationType="slide"
-        onRequestClose={() => setIsUploadModalOpen(false)}
+        onRequestClose={handleCloseModal}
       >
         <View style={styles.modalBackground}>
           <TouchableOpacity 
             style={styles.modalCloseArea} 
             activeOpacity={1} 
-            onPress={() => setIsUploadModalOpen(false)}
+            onPress={handleCloseModal}
           />
           
           <View style={[styles.uploadFormCard, { backgroundColor: themeColors.card, borderColor: themeColors.border }]}>
             <View style={styles.formHeader}>
-              <Text style={[styles.formTitle, { color: themeColors.text }]}>Add New Work</Text>
-              <TouchableOpacity onPress={() => setIsUploadModalOpen(false)}>
+              <Text style={[styles.formTitle, { color: themeColors.text }]}>
+                {editingItem ? (editingItem.type === 'project' ? 'Edit Project' : 'Edit Certificate') : 'Add New Work'}
+              </Text>
+              <TouchableOpacity onPress={handleCloseModal}>
                 <Ionicons name="close-circle" size={28} color={themeColors.tint} />
               </TouchableOpacity>
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false} style={styles.formScroll}>
-              {/* Selector Type */}
-              <View style={styles.inputGroup}>
-                <Text style={[styles.inputLabel, { color: themeColors.text }]}>Work Type</Text>
-                <View style={styles.typeSelectorRow}>
-                  <TouchableOpacity 
-                    style={[styles.typeSelectBtn, uploadType === 'project' && { backgroundColor: themeColors.tint }]}
-                    onPress={() => setUploadType('project')}
-                  >
-                    <Text style={[styles.typeSelectBtnText, { color: uploadType === 'project' ? (colorScheme === 'dark' ? '#1f242d' : '#FFFFFF') : themeColors.text }]}>Project</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity 
-                    style={[styles.typeSelectBtn, uploadType === 'certificate' && { backgroundColor: themeColors.tint }]}
-                    onPress={() => setUploadType('certificate')}
-                  >
-                    <Text style={[styles.typeSelectBtnText, { color: uploadType === 'certificate' ? (colorScheme === 'dark' ? '#1f242d' : '#FFFFFF') : themeColors.text }]}>Certificate</Text>
-                  </TouchableOpacity>
+              {/* Selector Type - Hidden in edit mode */}
+              {!editingItem && (
+                <View style={styles.inputGroup}>
+                  <Text style={[styles.inputLabel, { color: themeColors.text }]}>Work Type</Text>
+                  <View style={styles.typeSelectorRow}>
+                    <TouchableOpacity 
+                      style={[styles.typeSelectBtn, uploadType === 'project' && { backgroundColor: themeColors.tint }]}
+                      onPress={() => setUploadType('project')}
+                    >
+                      <Text style={[styles.typeSelectBtnText, { color: uploadType === 'project' ? (colorScheme === 'dark' ? '#1f242d' : '#FFFFFF') : themeColors.text }]}>Project</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                      style={[styles.typeSelectBtn, uploadType === 'certificate' && { backgroundColor: themeColors.tint }]}
+                      onPress={() => setUploadType('certificate')}
+                    >
+                      <Text style={[styles.typeSelectBtnText, { color: uploadType === 'certificate' ? (colorScheme === 'dark' ? '#1f242d' : '#FFFFFF') : themeColors.text }]}>Certificate</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
-              </View>
+              )}
 
               {/* Title */}
               <View style={styles.inputGroup}>
@@ -526,27 +825,65 @@ export default function PortfolioScreen() {
 
               {/* Picture Upload/Link URL */}
               <View style={styles.inputGroup}>
-                <Text style={[styles.inputLabel, { color: themeColors.text }]}>Picture URL (Leave blank to use template mockup)</Text>
-                <TextInput 
-                  style={[styles.textInput, { backgroundColor: themeColors.background, color: themeColors.text, borderColor: themeColors.border }]}
-                  placeholder="https://example.com/screenshot.png"
-                  placeholderTextColor={themeColors.secondaryText}
-                  value={newImgUrl}
-                  onChangeText={setNewImgUrl}
-                />
+                <Text style={[styles.inputLabel, { color: themeColors.text }]}>Picture (Screenshot / Cover Image)</Text>
+                <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center', backgroundColor: 'transparent' }}>
+                  <TextInput 
+                    style={[styles.textInput, { flex: 1, backgroundColor: themeColors.background, color: themeColors.text, borderColor: themeColors.border }]}
+                    placeholder="Enter Image URL or select file"
+                    placeholderTextColor={themeColors.secondaryText}
+                    value={newImgUrl.startsWith('data:') ? 'Local file selected (Base64 data)' : newImgUrl}
+                    onChangeText={setNewImgUrl}
+                  />
+                  <TouchableOpacity 
+                    className="btn-outline-3d"
+                    style={{
+                      height: 52,
+                      width: 52,
+                      borderRadius: 10,
+                      borderWidth: 1.5,
+                      borderColor: themeColors.tint,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: 'transparent',
+                    }}
+                    onPress={() => handlePickFile('image')}
+                    activeOpacity={0.8}
+                  >
+                    <Ionicons name="image-outline" size={20} color={themeColors.tint} />
+                  </TouchableOpacity>
+                </View>
               </View>
 
               {/* PDF Upload/Link URL for Certificates */}
               {uploadType === 'certificate' && (
                 <View style={styles.inputGroup}>
-                  <Text style={[styles.inputLabel, { color: themeColors.text }]}>Credential PDF URL</Text>
-                  <TextInput 
-                    style={[styles.textInput, { backgroundColor: themeColors.background, color: themeColors.text, borderColor: themeColors.border }]}
-                    placeholder="https://example.com/certificate.pdf"
-                    placeholderTextColor={themeColors.secondaryText}
-                    value={newPdfUrl}
-                    onChangeText={setNewPdfUrl}
-                  />
+                  <Text style={[styles.inputLabel, { color: themeColors.text }]}>Credential PDF</Text>
+                  <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center', backgroundColor: 'transparent' }}>
+                    <TextInput 
+                      style={[styles.textInput, { flex: 1, backgroundColor: themeColors.background, color: themeColors.text, borderColor: themeColors.border }]}
+                      placeholder="Enter PDF URL or select file"
+                      placeholderTextColor={themeColors.secondaryText}
+                      value={newPdfUrl.startsWith('data:') ? 'Local PDF selected (Base64 data)' : newPdfUrl}
+                      onChangeText={setNewPdfUrl}
+                    />
+                    <TouchableOpacity 
+                      className="btn-outline-3d"
+                      style={{
+                        height: 52,
+                        width: 52,
+                        borderRadius: 10,
+                        borderWidth: 1.5,
+                        borderColor: themeColors.tint,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: 'transparent',
+                      }}
+                      onPress={() => handlePickFile('pdf')}
+                      activeOpacity={0.8}
+                    >
+                      <Ionicons name="document-text-outline" size={20} color={themeColors.tint} />
+                    </TouchableOpacity>
+                  </View>
                 </View>
               )}
 
@@ -556,7 +893,9 @@ export default function PortfolioScreen() {
                 onPress={handleUploadSubmit}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.submitFormBtnText, { color: colorScheme === 'dark' ? '#1f242d' : '#FFFFFF' }]}>Upload Work</Text>
+                <Text style={[styles.submitFormBtnText, { color: colorScheme === 'dark' ? '#1f242d' : '#FFFFFF' }]}>
+                  {editingItem ? 'Save Changes' : 'Upload Work'}
+                </Text>
               </TouchableOpacity>
             </ScrollView>
           </View>
@@ -665,6 +1004,18 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 12,
     left: 12,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(15, 23, 42, 0.75)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 5,
+  },
+  editOverlay: {
+    position: 'absolute',
+    top: 12,
+    left: 56,
     width: 38,
     height: 38,
     borderRadius: 19,
