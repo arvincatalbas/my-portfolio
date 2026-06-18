@@ -5,9 +5,11 @@ import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { portfolioData } from '@/constants/portfolioData';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useNavigation } from 'expo-router';
 import WebHeader from '@/components/WebHeader';
 import SettingsModal from '@/components/SettingsModal';
+import { getIndexedDBItem } from '@/utils/storage';
+import * as WebBrowser from 'expo-web-browser';
 
 export default function HomeScreen() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -27,6 +29,32 @@ export default function HomeScreen() {
   const colorScheme = useColorScheme() ?? 'light';
   const themeColors = Colors[colorScheme];
   const { profile } = portfolioData;
+
+  const [resumeUrl, setResumeUrl] = useState<string>(profile.resumeUrl);
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    const loadResume = async () => {
+      if (Platform.OS === 'web') {
+        try {
+          const storedResume = await getIndexedDBItem<string>('portfolio_resume');
+          if (storedResume) {
+            setResumeUrl(storedResume);
+          }
+        } catch (e) {
+          console.error("Failed to load resume from storage", e);
+        }
+      }
+    };
+
+    loadResume();
+
+    const unsubscribe = navigation.addListener('focus', () => {
+      loadResume();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
 
   // Responsive design tokens
   const greetingSize = isLargeScreen ? 34 : 26;
@@ -51,6 +79,33 @@ export default function HomeScreen() {
 
   const openUrl = (url: string) => {
     Linking.openURL(url).catch((err) => console.error("Couldn't load page", err));
+  };
+
+  const handleOpenResume = async () => {
+    if (Platform.OS === 'web' && resumeUrl.startsWith('data:application/pdf;base64,')) {
+      try {
+        const base64Data = resumeUrl.split(',')[1];
+        const binaryString = window.atob(base64Data);
+        const len = binaryString.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        const blob = new Blob([bytes], { type: 'application/pdf' });
+        const blobUrl = URL.createObjectURL(blob);
+        window.open(blobUrl, '_blank');
+        return;
+      } catch (e) {
+        console.error("Failed to open local base64 PDF", e);
+      }
+    }
+
+    try {
+      await WebBrowser.openBrowserAsync(resumeUrl);
+    } catch (error) {
+      console.log('Error opening browser:', error);
+      openUrl(resumeUrl);
+    }
   };
 
   return (
@@ -376,7 +431,7 @@ export default function HomeScreen() {
               <TouchableOpacity 
                 className="btn-outline-3d"
                 style={[styles.resumeButton, { borderColor: themeColors.tint, height: ctaBtnHeight, borderRadius: ctaBtnRadius }]}
-                onPress={() => openUrl(profile.resumeUrl)}
+                onPress={handleOpenResume}
                 activeOpacity={0.8}
               >
                 <Text style={[styles.resumeButtonText, { color: themeColors.tint, fontSize: ctaBtnTextSize }]}>My Resume</Text>

@@ -7,10 +7,10 @@ import { portfolioData, Project, Certificate } from '@/constants/portfolioData';
 import { Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
 import WebHeader from '@/components/WebHeader';
-import { showDeleteConfirmation } from '@/components/DeleteConfirmation';
+import { showDeleteConfirmation, showAlert } from '@/components/DeleteConfirmation';
 import { getIndexedDBItem, setIndexedDBItem } from '@/utils/storage';
 import { compressImage } from '@/utils/image';
-import Swal from 'sweetalert2';
+
 
 const { height } = Dimensions.get('window');
 
@@ -29,9 +29,11 @@ export default function PortfolioScreen() {
         try {
           const storedProjects = await getIndexedDBItem<Project[]>('portfolio_projects');
           const storedCerts = await getIndexedDBItem<Certificate[]>('portfolio_certificates');
+          const storedResume = await getIndexedDBItem<string>('portfolio_resume');
           
           if (storedProjects) setProjects(storedProjects);
           if (storedCerts) setCertificates(storedCerts);
+          if (storedResume) setCurrentResumeUrl(storedResume);
         } catch (e) {
           console.error("Failed to load portfolio data from IndexedDB", e);
         } finally {
@@ -47,14 +49,22 @@ export default function PortfolioScreen() {
   // Persist state updates to IndexedDB
   useEffect(() => {
     if (isWeb && hasLoaded) {
-      setIndexedDBItem('portfolio_projects', projects)
+      const serializedProjects = projects.map(p => ({
+        ...p,
+        image: p.image && typeof p.image === 'object' ? { uri: p.image.uri || '' } : p.image
+      }));
+      setIndexedDBItem('portfolio_projects', serializedProjects)
         .catch(e => console.error("Failed to save projects to IndexedDB", e));
     }
   }, [projects, hasLoaded]);
 
   useEffect(() => {
     if (isWeb && hasLoaded) {
-      setIndexedDBItem('portfolio_certificates', certificates)
+      const serializedCertificates = certificates.map(c => ({
+        ...c,
+        image: c.image && typeof c.image === 'object' ? { uri: c.image.uri || '' } : c.image
+      }));
+      setIndexedDBItem('portfolio_certificates', serializedCertificates)
         .catch(e => console.error("Failed to save certificates to IndexedDB", e));
     }
   }, [certificates, hasLoaded]);
@@ -67,7 +77,7 @@ export default function PortfolioScreen() {
   
   // Modal states for Upload Form
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-  const [uploadType, setUploadType] = useState<'project' | 'certificate'>('project');
+  const [uploadType, setUploadType] = useState<'project' | 'certificate' | 'resume'>('project');
   const [newTitle, setNewTitle] = useState('');
   const [newDesc, setNewDesc] = useState('');
   const [newIssuer, setNewIssuer] = useState('');
@@ -75,6 +85,7 @@ export default function PortfolioScreen() {
   const [newTags, setNewTags] = useState('');
   const [newImgUrl, setNewImgUrl] = useState('');
   const [newPdfUrl, setNewPdfUrl] = useState('');
+  const [currentResumeUrl, setCurrentResumeUrl] = useState<string>('');
   
   // Track item being edited
   const [editingItem, setEditingItem] = useState<{ id: string; type: 'project' | 'certificate' } | null>(null);
@@ -121,13 +132,11 @@ export default function PortfolioScreen() {
         const file = e.target.files?.[0];
         if (file) {
           if (type === 'pdf' && file.size > 2 * 1024 * 1024) {
-            Swal.fire({
+            showAlert({
               title: 'File Too Large',
               text: 'PDF size exceeds the 2MB limit. Please upload a smaller PDF file.',
-              icon: 'warning',
+              isDark: colorScheme === 'dark',
               confirmButtonColor: themeColors.tint,
-              background: colorScheme === 'dark' ? '#323946' : '#FFFFFF',
-              color: colorScheme === 'dark' ? '#FFFFFF' : '#1F2937',
             });
             return;
           }
@@ -301,7 +310,7 @@ export default function PortfolioScreen() {
           isUploaded: true,
         };
         setProjects(prev => [newProj, ...prev]);
-      } else {
+      } else if (uploadType === 'certificate') {
         const newCert: Certificate = {
           id: newId,
           title: newTitle.trim(),
@@ -312,6 +321,30 @@ export default function PortfolioScreen() {
           isUploaded: true,
         };
         setCertificates(prev => [newCert, ...prev]);
+      } else if (uploadType === 'resume') {
+        if (isWeb) {
+          setIndexedDBItem('portfolio_resume', newPdfUrl.trim())
+            .then(() => {
+              setCurrentResumeUrl(newPdfUrl.trim());
+              showAlert({
+                title: 'Resume Updated',
+                text: 'Your resume has been successfully updated.',
+                isDark: colorScheme === 'dark',
+                confirmButtonColor: themeColors.tint,
+              });
+            })
+            .catch(e => {
+              console.error("Failed to save resume to IndexedDB", e);
+              showAlert({
+                title: 'Upload Failed',
+                text: 'Could not save the resume locally.',
+                isDark: colorScheme === 'dark',
+                confirmButtonColor: themeColors.tint,
+              });
+            });
+        } else {
+          alert("Local storage is only supported on the Web preview.");
+        }
       }
     }
 
@@ -785,21 +818,33 @@ export default function PortfolioScreen() {
                     >
                       <Text style={[styles.typeSelectBtnText, { color: uploadType === 'certificate' ? (colorScheme === 'dark' ? '#1f242d' : '#FFFFFF') : themeColors.text }]}>Certificate</Text>
                     </TouchableOpacity>
+                    <TouchableOpacity 
+                      style={[styles.typeSelectBtn, uploadType === 'resume' && { backgroundColor: themeColors.tint }]}
+                      onPress={() => {
+                        setUploadType('resume');
+                        setNewTitle('Resume');
+                        setNewPdfUrl(currentResumeUrl);
+                      }}
+                    >
+                      <Text style={[styles.typeSelectBtnText, { color: uploadType === 'resume' ? (colorScheme === 'dark' ? '#1f242d' : '#FFFFFF') : themeColors.text }]}>Resume</Text>
+                    </TouchableOpacity>
                   </View>
                 </View>
               )}
 
               {/* Title */}
-              <View style={styles.inputGroup}>
-                <Text style={[styles.inputLabel, { color: themeColors.text }]}>Title *</Text>
-                <TextInput 
-                  style={[styles.textInput, { backgroundColor: themeColors.background, color: themeColors.text, borderColor: themeColors.border }]}
-                  placeholder="e.g. Cisco Networking Essentials"
-                  placeholderTextColor={themeColors.secondaryText}
-                  value={newTitle}
-                  onChangeText={setNewTitle}
-                />
-              </View>
+              {uploadType !== 'resume' && (
+                <View style={styles.inputGroup}>
+                  <Text style={[styles.inputLabel, { color: themeColors.text }]}>Title *</Text>
+                  <TextInput 
+                    style={[styles.textInput, { backgroundColor: themeColors.background, color: themeColors.text, borderColor: themeColors.border }]}
+                    placeholder="e.g. Cisco Networking Essentials"
+                    placeholderTextColor={themeColors.secondaryText}
+                    value={newTitle}
+                    onChangeText={setNewTitle}
+                  />
+                </View>
+              )}
 
               {/* Conditional Description for Projects */}
               {uploadType === 'project' && (
@@ -861,35 +906,37 @@ export default function PortfolioScreen() {
               )}
 
               {/* Picture Upload/Link URL */}
-              <View style={styles.inputGroup}>
-                <Text style={[styles.inputLabel, { color: themeColors.text }]}>Picture (Screenshot / Cover Image)</Text>
-                <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center', backgroundColor: 'transparent' }}>
-                  <TextInput 
-                    style={[styles.textInput, { flex: 1, backgroundColor: themeColors.background, color: themeColors.text, borderColor: themeColors.border }]}
-                    placeholder="Enter Image URL or select file"
-                    placeholderTextColor={themeColors.secondaryText}
-                    value={newImgUrl.startsWith('data:') ? 'Local file selected (Base64 data)' : newImgUrl}
-                    onChangeText={setNewImgUrl}
-                  />
-                  <TouchableOpacity 
-                    className="btn-outline-3d"
-                    style={{
-                      height: 52,
-                      width: 52,
-                      borderRadius: 10,
-                      borderWidth: 1.5,
-                      borderColor: themeColors.tint,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      backgroundColor: 'transparent',
-                    }}
-                    onPress={() => handlePickFile('image')}
-                    activeOpacity={0.8}
-                  >
-                    <Ionicons name="image-outline" size={20} color={themeColors.tint} />
-                  </TouchableOpacity>
+              {uploadType !== 'resume' && (
+                <View style={styles.inputGroup}>
+                  <Text style={[styles.inputLabel, { color: themeColors.text }]}>Picture (Screenshot / Cover Image)</Text>
+                  <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center', backgroundColor: 'transparent' }}>
+                    <TextInput 
+                      style={[styles.textInput, { flex: 1, backgroundColor: themeColors.background, color: themeColors.text, borderColor: themeColors.border }]}
+                      placeholder="Enter Image URL or select file"
+                      placeholderTextColor={themeColors.secondaryText}
+                      value={newImgUrl.startsWith('data:') ? 'Local file selected (Base64 data)' : newImgUrl}
+                      onChangeText={setNewImgUrl}
+                    />
+                    <TouchableOpacity 
+                      className="btn-outline-3d"
+                      style={{
+                        height: 52,
+                        width: 52,
+                        borderRadius: 10,
+                        borderWidth: 1.5,
+                        borderColor: themeColors.tint,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: 'transparent',
+                      }}
+                      onPress={() => handlePickFile('image')}
+                      activeOpacity={0.8}
+                    >
+                      <Ionicons name="image-outline" size={20} color={themeColors.tint} />
+                    </TouchableOpacity>
+                  </View>
                 </View>
-              </View>
+              )}
 
               {/* PDF Upload/Link URL for Certificates */}
               {uploadType === 'certificate' && (
@@ -924,6 +971,51 @@ export default function PortfolioScreen() {
                 </View>
               )}
 
+              {/* PDF Upload/Link URL for Resume */}
+              {uploadType === 'resume' && (
+                <View style={styles.inputGroup}>
+                  <Text style={[styles.inputLabel, { color: themeColors.text }]}>Resume PDF</Text>
+                  <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center', backgroundColor: 'transparent' }}>
+                    <TextInput 
+                      style={[styles.textInput, { flex: 1, backgroundColor: themeColors.background, color: themeColors.text, borderColor: themeColors.border }]}
+                      placeholder="Enter PDF URL or select file"
+                      placeholderTextColor={themeColors.secondaryText}
+                      value={newPdfUrl.startsWith('data:') ? 'Local PDF selected (Base64 data)' : newPdfUrl}
+                      onChangeText={setNewPdfUrl}
+                    />
+                    <TouchableOpacity 
+                      className="btn-outline-3d"
+                      style={{
+                        height: 52,
+                        width: 52,
+                        borderRadius: 10,
+                        borderWidth: 1.5,
+                        borderColor: themeColors.tint,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: 'transparent',
+                      }}
+                      onPress={() => handlePickFile('pdf')}
+                      activeOpacity={0.8}
+                    >
+                      <Ionicons name="document-text-outline" size={20} color={themeColors.tint} />
+                    </TouchableOpacity>
+                  </View>
+                  {currentResumeUrl ? (
+                    <TouchableOpacity
+                      style={{ marginTop: 12, flexDirection: 'row', alignItems: 'center', gap: 6 }}
+                      onPress={() => handleOpenPDF(currentResumeUrl)}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="eye-outline" size={18} color={themeColors.tint} />
+                      <Text style={{ color: themeColors.tint, fontWeight: '600', fontSize: 14 }}>
+                        View Current Resume
+                      </Text>
+                    </TouchableOpacity>
+                  ) : null}
+                </View>
+              )}
+
               {/* Action Submit */}
               <TouchableOpacity 
                 style={[styles.submitFormBtn, { backgroundColor: themeColors.tint, shadowColor: themeColors.tint }]}
@@ -931,7 +1023,7 @@ export default function PortfolioScreen() {
                 activeOpacity={0.8}
               >
                 <Text style={[styles.submitFormBtnText, { color: colorScheme === 'dark' ? '#1f242d' : '#FFFFFF' }]}>
-                  {editingItem ? 'Save Changes' : 'Upload Work'}
+                  {editingItem ? 'Save Changes' : (uploadType === 'resume' ? 'Upload Resume' : 'Upload Work')}
                 </Text>
               </TouchableOpacity>
             </ScrollView>

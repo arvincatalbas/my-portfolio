@@ -25,3 +25,15 @@ export const showDeleteConfirmation = ({ title, text, isDark, onConfirm }: Confi
     { cancelable: true }
   );
 };
+
+interface AlertOptions {
+  title: string;
+  text: string;
+  isDark: boolean;
+  confirmButtonColor?: string;
+}
+
+export const showAlert = ({ title, text }: AlertOptions) => {
+  Alert.alert(title, text, [{ text: 'OK' }]);
+};
+

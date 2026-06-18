@@ -41,3 +41,22 @@ export const showDeleteConfirmation = ({ title, text, isDark, onConfirm }: Confi
     }
   });
 };
+
+interface AlertOptions {
+  title: string;
+  text: string;
+  isDark: boolean;
+  confirmButtonColor?: string;
+}
+
+export const showAlert = ({ title, text, isDark, confirmButtonColor }: AlertOptions) => {
+  Swal.fire({
+    title: title,
+    text: text,
+    icon: 'warning',
+    confirmButtonColor: confirmButtonColor || '#00eeff',
+    background: isDark ? '#323946' : '#FFFFFF',
+    color: isDark ? '#FFFFFF' : '#1F2937',
+  });
+};
+
