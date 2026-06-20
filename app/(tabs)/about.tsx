@@ -70,7 +70,7 @@ export default function AboutScreen() {
               About <Text style={{ color: themeColors.tint }}>Me</Text>
             </Text>
             <Text className="text-3d-hologram" style={[styles.aboutSubHeader, { color: themeColors.text, fontSize: subHeaderSize }]}>
-              Junior IT Specialist & Developer!
+              Network/IT Product Associate & Web Developer!
             </Text>
             <Text style={[styles.aboutDescription, { color: themeColors.secondaryText, textAlign: isLargeScreen ? 'left' : 'center', fontSize: descSize, lineHeight: descLineHeight, marginBottom: descMarginBottom }]} numberOfLines={6}>
               {profile.bio}
