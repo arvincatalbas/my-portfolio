@@ -7,6 +7,7 @@ import { portfolioData } from '@/constants/portfolioData';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams } from 'expo-router';
 import WebHeader from '@/components/WebHeader';
+import NetworkBackground from '@/components/NetworkBackground';
 
 export default function ContactsScreen() {
   const params = useLocalSearchParams<{ subject?: string }>();
@@ -98,6 +99,7 @@ export default function ContactsScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={[styles.container, { backgroundColor: themeColors.background }]}
     >
+      <NetworkBackground />
       {/* Custom Sticky Header for Web */}
       <WebHeader activeTab="contacts" />
 

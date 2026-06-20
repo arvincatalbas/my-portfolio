@@ -6,6 +6,8 @@ import Colors from '@/constants/Colors';
 import { portfolioData } from '@/constants/portfolioData';
 import { router } from 'expo-router';
 import WebHeader from '@/components/WebHeader';
+import NetworkBackground from '@/components/NetworkBackground';
+import Avatar3D from '@/components/Avatar3D';
 
 export default function AboutScreen() {
   useEffect(() => {
@@ -41,36 +43,7 @@ export default function AboutScreen() {
 
   return (
     <View style={[styles.mainContainer, { backgroundColor: themeColors.background }]}>
-      {Platform.OS === 'web' && (
-        <style>{`
-          .avatar-3d {
-            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.6s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
-            transform-style: preserve-3d;
-            perspective: 1000px;
-            transform: translateY(calc(var(--scroll-y) * -0.08px)) 
-                       rotateY(calc(var(--scroll-y) * -0.02deg)) 
-                       rotateX(calc(var(--scroll-y) * -0.015deg));
-          }
-          .avatar-border-3d {
-            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
-            transform-style: preserve-3d;
-          }
-          .avatar-img-3d {
-            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
-          }
-          .avatar-3d:hover {
-            transform: scale(1.12) rotateY(-25deg) rotateX(15deg) translateY(-8px) !important;
-            box-shadow: 15px 30px 60px ${themeColors.tint}60 !important;
-            border-color: ${themeColors.tint} !important;
-          }
-          .avatar-3d:hover .avatar-border-3d {
-            transform: translateZ(30px);
-          }
-          .avatar-3d:hover .avatar-img-3d {
-            transform: translateZ(60px) scale(1.08);
-          }
-        `}</style>
-      )}
+      <NetworkBackground />
 
       {/* Custom Sticky Header for Web */}
       <WebHeader activeTab="about" />
@@ -88,67 +61,7 @@ export default function AboutScreen() {
           
           {/* Left Avatar (glowing border - Hexagon on Web, Circle on Mobile) */}
           <View style={[styles.aboutImageContainer, { flex: isLargeScreen ? 0.8 : undefined }]}>
-            {Platform.OS === 'web' ? (
-              <View 
-                className="avatar-3d"
-                style={{
-                  width: avatarSize,
-                  height: avatarSize,
-                  filter: `drop-shadow(0 0 20px ${themeColors.tint}60)`,
-                  backgroundColor: 'transparent',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                } as any}
-              >
-                <View 
-                  className="avatar-border-3d"
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    backgroundColor: themeColors.tint,
-                    clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  } as any}
-                >
-                  <View 
-                    style={{
-                      width: '98%',
-                      height: '98%',
-                      clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
-                      backgroundColor: themeColors.background,
-                      overflow: 'hidden',
-                    } as any}
-                  >
-                    <Image 
-                      source={profile.avatar}
-                      className="avatar-img-3d"
-                      style={styles.profilePic}
-                      resizeMode="cover"
-                    />
-                  </View>
-                </View>
-              </View>
-            ) : (
-              <View 
-                style={[
-                  styles.imageWrapper, 
-                  { 
-                    shadowColor: themeColors.tint, 
-                    borderColor: themeColors.tint,
-                    width: avatarSize,
-                    height: avatarSize,
-                    borderRadius: avatarSize / 2,
-                  }
-                ]}
-              >
-                <Image 
-                  source={profile.avatar}
-                  style={styles.profilePic}
-                  resizeMode="cover"
-                />
-              </View>
-            )}
+            <Avatar3D size={avatarSize} avatarSource={profile.avatar} />
           </View>
  
           {/* Right About Text details */}

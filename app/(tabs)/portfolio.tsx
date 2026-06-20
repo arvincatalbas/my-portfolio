@@ -7,6 +7,7 @@ import { portfolioData, Project, Certificate } from '@/constants/portfolioData';
 import { Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
 import WebHeader from '@/components/WebHeader';
+import NetworkBackground from '@/components/NetworkBackground';
 import { showDeleteConfirmation, showAlert } from '@/components/DeleteConfirmation';
 import { getIndexedDBItem, setIndexedDBItem } from '@/utils/storage';
 import { compressImage } from '@/utils/image';
@@ -385,6 +386,7 @@ export default function PortfolioScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
+      <NetworkBackground />
       {/* 3D Animations for Portfolio Cards */}
       {Platform.OS === 'web' && (
         <style>{`
@@ -579,6 +581,7 @@ export default function PortfolioScreen() {
                   
                   {/* Delete Button overlay */}
                   <TouchableOpacity 
+                    className="delete-overlay-btn"
                     style={styles.deleteOverlay}
                     onPress={() => handleDelete(project.id, 'project')}
                   >
@@ -587,6 +590,7 @@ export default function PortfolioScreen() {
 
                   {/* Edit Button overlay */}
                   <TouchableOpacity 
+                    className="edit-overlay-btn"
                     style={styles.editOverlay}
                     onPress={() => handleStartEdit(project, 'project')}
                   >
@@ -676,6 +680,7 @@ export default function PortfolioScreen() {
                   
                   {/* Delete Button overlay */}
                   <TouchableOpacity 
+                    className="delete-overlay-btn"
                     style={styles.deleteOverlay}
                     onPress={(e: any) => {
                       if (Platform.OS === 'web' && e && e.stopPropagation) {
@@ -689,6 +694,7 @@ export default function PortfolioScreen() {
 
                   {/* Edit Button overlay */}
                   <TouchableOpacity 
+                    className="edit-overlay-btn"
                     style={styles.editOverlay}
                     onPress={(e: any) => {
                       if (Platform.OS === 'web' && e && e.stopPropagation) {

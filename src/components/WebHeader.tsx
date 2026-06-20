@@ -38,11 +38,36 @@ export default function WebHeader({ activeTab }: WebHeaderProps) {
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            position: relative;
+            overflow: hidden !important;
+          }
+          .btn-3d::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -50%;
+            width: 25%;
+            height: 100%;
+            background: linear-gradient(
+              to right,
+              rgba(255, 255, 255, 0) 0%,
+              rgba(255, 255, 255, 0.35) 50%,
+              rgba(255, 255, 255, 0) 100%
+            );
+            transform: skewX(-25deg);
+            transition: 0.75s;
+            opacity: 0;
+            pointer-events: none;
           }
           .btn-3d:hover {
             transform: scale(1.05) translateY(-3px) rotateX(4deg) !important;
-            box-shadow: 0 10px 20px rgba(0, 238, 255, 0.45) !important;
+            box-shadow: 0 12px 25px ${themeColors.tint}66 !important;
+            filter: drop-shadow(0 6px 12px ${themeColors.tint}44) !important;
             cursor: pointer;
+          }
+          .btn-3d:hover::after {
+            left: 125%;
+            opacity: 1;
           }
           
           /* Secondary/Outline Button 3D lift */
@@ -53,13 +78,61 @@ export default function WebHeader({ activeTab }: WebHeaderProps) {
             justify-content: center;
           }
           .btn-outline-3d:hover {
-            transform: scale(1.04) translateY(-2px) !important;
-            box-shadow: 0 5px 15px rgba(0, 238, 255, 0.15) !important;
-            border-color: #00eeff !important;
-            background-color: rgba(0, 238, 255, 0.05) !important;
+            transform: scale(1.05) translateY(-3px) !important;
+            box-shadow: 0 8px 20px ${themeColors.tint}22, 0 0 10px ${themeColors.tint}22 !important;
+            border-color: ${themeColors.tint} !important;
+            background-color: ${themeColors.tint}18 !important; /* ~10% opacity */
             cursor: pointer;
           }
 
+          /* Small circular overlay buttons hover */
+          .delete-overlay-btn {
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+          }
+          .delete-overlay-btn:hover {
+            transform: scale(1.18) !important;
+            background-color: #EF4444 !important;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.6) !important;
+            cursor: pointer;
+          }
+          .delete-overlay-btn:hover .icon-3d-rotate {
+            color: #FFFFFF !important;
+            transform: scale(1.1) rotate(15deg) !important;
+          }
+
+          .edit-overlay-btn {
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+          }
+          .edit-overlay-btn:hover {
+            transform: scale(1.18) !important;
+            background-color: ${themeColors.tint} !important;
+            box-shadow: 0 0 15px ${themeColors.tint}88 !important;
+            cursor: pointer;
+          }
+          .edit-overlay-btn:hover .icon-3d-rotate {
+            color: ${colorScheme === 'dark' ? '#1f242d' : '#FFFFFF'} !important;
+            transform: scale(1.1) rotate(-15deg) !important;
+          }
+
+          /* Social circle 3D hover */
+          .social-circle-3d {
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+          }
+          .social-circle-3d:hover {
+            transform: scale(1.18) translateY(-4px) !important;
+            box-shadow: 0 0 20px ${themeColors.tint}aa !important;
+            background-color: ${themeColors.tint}22 !important;
+            border-color: ${themeColors.tint} !important;
+            cursor: pointer;
+          }
+          .social-circle-3d:hover .icon-3d-rotate {
+            transform: scale(1.22) rotate(12deg) !important;
+            color: ${themeColors.tint} !important;
+          }
+ 
           /* 3D Nav Links Hover */
           .nav-link-3d {
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
@@ -67,7 +140,7 @@ export default function WebHeader({ activeTab }: WebHeaderProps) {
           }
           .nav-link-3d:hover {
             transform: translateY(-2px) scale(1.06) !important;
-            text-shadow: 0 2px 5px rgba(0, 238, 255, 0.3);
+            text-shadow: 0 2px 5px ${themeColors.tint}66;
             cursor: pointer;
           }
           .nav-link-3d::after {
@@ -77,35 +150,35 @@ export default function WebHeader({ activeTab }: WebHeaderProps) {
             height: 2.5px;
             bottom: -2px;
             left: 0;
-            background-color: #00eeff;
+            background-color: ${themeColors.tint};
             transition: width 0.3s ease;
           }
           .nav-link-3d:hover::after {
             width: 100%;
           }
-
+ 
           /* 3D Icon Animations */
           .icon-3d-rotate {
             transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
           }
           .icon-3d-rotate:hover {
             transform: scale(1.22) rotate(15deg) translateZ(10px) !important;
-            filter: drop-shadow(0 0 5px rgba(0, 238, 255, 0.6)) !important;
+            filter: drop-shadow(0 0 5px ${themeColors.tint}) !important;
           }
-
+ 
           .icon-3d-float {
             animation: iconFloat 3.5s ease-in-out infinite alternate;
             transition: transform 0.3s ease;
           }
           .icon-3d-float:hover {
             transform: scale(1.15) translateZ(20px);
-            filter: drop-shadow(0 0 8px #00eeff);
+            filter: drop-shadow(0 0 8px ${themeColors.tint});
           }
           @keyframes iconFloat {
             0% { transform: translateY(0px) rotate(0deg); }
             100% { transform: translateY(-6px) rotate(5deg); }
           }
-
+ 
           /* 3D Texts and Title Holograms */
           .text-3d-hologram {
             transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
@@ -114,9 +187,9 @@ export default function WebHeader({ activeTab }: WebHeaderProps) {
           .text-3d-hologram:hover {
             transform: translateY(-4px) scale(1.03) rotateX(10deg) !important;
             text-shadow: 
-              0 1px 0 #00ccd4,
-              0 2px 0 #00838f,
-              0 4px 6px rgba(0, 238, 255, 0.4);
+              0 1px 0 ${themeColors.tint}dd,
+              0 2px 0 ${themeColors.accent},
+              0 4px 6px ${themeColors.tint}66;
             cursor: default;
           }
         `}</style>

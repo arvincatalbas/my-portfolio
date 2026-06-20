@@ -7,6 +7,7 @@ import { portfolioData, Service } from '@/constants/portfolioData';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import WebHeader from '@/components/WebHeader';
+import NetworkBackground from '@/components/NetworkBackground';
 
 export default function ServicesScreen() {
   const { width } = useWindowDimensions();
@@ -56,6 +57,7 @@ export default function ServicesScreen() {
 
   return (
     <View style={[styles.mainContainer, { backgroundColor: themeColors.background }]}>
+      <NetworkBackground />
       {/* 3D Animations for Services Cards */}
       {Platform.OS === 'web' && (
         <style>{`

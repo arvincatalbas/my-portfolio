@@ -7,17 +7,26 @@ A premium, modern cross-platform portfolio application built using **React Nativ
 ## 🌟 Key Features
 
 * **🏠 Home / Hero Screen:** A premium developer landing card showcasing professional profile, bio, responsive social links (Facebook, Instagram, LinkedIn, GitHub, Twitter), live stats (certifications, technical skills, IT projects), and CTA redirects.
-* **ℹ️ About Screen:** A dedicated bio screen featuring a 3D-perspective rotating interactive polygon profile avatar (for Web), detailed background story, and core qualification descriptions.
+* **✨ Interactive 3D Avatar (`Avatar3D`):** A custom, responsive profile avatar featuring distinct experiences per platform:
+  - **Web:** Parallax cursor-tracking 3D rotation with depth rendering. Features a glowing hexagon container wrapped in dual-orbiting rings (dashed and solid) rotating in opposite directions. Surrounded by floating 3D tech badge icons (Linux terminal, network path, database server, React) that float independently, complete with a hover-activated scanline hologram overlay sweep.
+  - **Mobile:** Rendered in a clean circular design with a dual-layered pulsing shadow/opacity boundary.
+* **🌐 Dynamic Network Backdrop (`NetworkBackground`):** An interactive, canvas-driven network constellation background (for Web) with floating nodes connected by proximity-based lines. Nodes dynamically repel away from the user's cursor on hover, adapting colors and line opacity based on the active dark/light mode.
+* **ℹ️ About Screen:** A dedicated bio screen showcasing the premium `Avatar3D` component, a detailed professional story, and core qualification cards.
 * **💼 Services Screen:** Displays specialized services (Networking & IT Infrastructure, Front-End Development, System Administration & OS Support, Hardware & Electrical Maintenance) in custom cards, featuring itemized deliverables and quick-action inquiries.
 * **📂 Portfolio Screen (Projects & Certificates):**
   - **Dynamic Portfolio Management:** Supports adding, editing, and deleting projects or certificates in real-time.
   - **Image & PDF Uploads:** Features a local file picker that converts image screenshots and credential PDFs into Base64 format for self-contained persistence.
   - **Interactive Previews:** Gallery with image previews, tech stack badges, GitHub/Live demo links, and a full-screen image zoom viewer modal for certificates with direct PDF credential links.
+  - **Visual Upgrades:** Outfitted with specialized 3D-glow transitions for the edit/delete floating control triggers.
 * **⚙️ Settings & Theme Customization:**
   - Accessible via the responsive Web Header or Mobile Navigation.
   - **Persistent Theme Switcher:** Toggles between Light and Dark mode globally, saving preference in `localStorage` to prevent style flicker on reload.
   - **Data Reset:** Lets users wipe all custom modifications and restore the original portfolio template defaults.
 * **🔔 Premium Web Alerts:** Integrates `SweetAlert2` on browsers for modern, visually polished delete confirmations and success notifications.
+* **🎨 Micro-Animations & 3D Interactive Hover Effects:** Responsive, CSS-driven interactions applied across web controls:
+  - Navigation links feature sliding underline indicators with text-shadow glow.
+  - Primary call-to-action buttons feature scale-lifts, shadow expansion, and custom light-sweep reflective sheen effects.
+  - Social media links feature hover expansion, border glow, and rotational icon offsets.
 
 ---
 
@@ -60,8 +69,10 @@ my-portfolio/
 │   └── pdfs/                      # Local PDF credentials placeholders
 ├── src/                           # Logic & Reusable Elements
 │   ├── components/                # UI Components & Context Hooks
+│   │   ├── Avatar3D.tsx           # Premium 3D profile avatar with cursor-tracking and orbit rings
 │   │   ├── DeleteConfirmation.ts  # Native delete alert confirmation
 │   │   ├── DeleteConfirmation.web.ts # SweetAlert2 web confirmation
+│   │   ├── NetworkBackground.tsx  # Interactive HTML5 Canvas particle network backdrop
 │   │   ├── SettingsModal.tsx      # Theme and data reset modal
 │   │   ├── Themed.tsx             # Theme-aware Views & Text components
 │   │   ├── WebHeader.tsx          # Responsive Web Header Navigation
