@@ -11,6 +11,7 @@ import SettingsModal from '@/components/SettingsModal';
 import NetworkBackground from '@/components/NetworkBackground';
 import Avatar3D from '@/components/Avatar3D';
 import { getIndexedDBItem } from '@/utils/storage';
+import { isSupabaseConfigured, fetchResumeFromSupabase } from '@/utils/supabase';
 import * as WebBrowser from 'expo-web-browser';
 
 export default function HomeScreen() {
@@ -37,14 +38,34 @@ export default function HomeScreen() {
 
   useEffect(() => {
     const loadResume = async () => {
-      if (Platform.OS === 'web') {
-        try {
+      try {
+        if (isSupabaseConfigured()) {
+          const dbResume = await fetchResumeFromSupabase();
+          if (dbResume) {
+            setResumeUrl(dbResume);
+            return;
+          }
+        }
+        
+        // Fallback to IndexedDB (only on Web)
+        if (Platform.OS === 'web') {
           const storedResume = await getIndexedDBItem<string>('portfolio_resume');
           if (storedResume) {
             setResumeUrl(storedResume);
           }
-        } catch (e) {
-          console.error("Failed to load resume from storage", e);
+        }
+      } catch (e) {
+        console.error("Failed to load resume from storage", e);
+        // Local storage fallback on error
+        if (Platform.OS === 'web') {
+          try {
+            const storedResume = await getIndexedDBItem<string>('portfolio_resume');
+            if (storedResume) {
+              setResumeUrl(storedResume);
+            }
+          } catch (storageErr) {
+            console.error("Local storage fallback failed", storageErr);
+          }
         }
       }
     };

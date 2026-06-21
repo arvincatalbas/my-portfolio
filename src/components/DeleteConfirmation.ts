@@ -26,6 +26,25 @@ export const showDeleteConfirmation = ({ title, text, isDark, onConfirm }: Confi
   );
 };
 
+export const showArchiveConfirmation = ({ title, text, onConfirm }: ConfirmOptions) => {
+  Alert.alert(
+    title,
+    text,
+    [
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+      {
+        text: 'Yes, archive it!',
+        style: 'default',
+        onPress: onConfirm,
+      },
+    ],
+    { cancelable: true }
+  );
+};
+
 interface AlertOptions {
   title: string;
   text: string;
@@ -36,4 +55,5 @@ interface AlertOptions {
 export const showAlert = ({ title, text }: AlertOptions) => {
   Alert.alert(title, text, [{ text: 'OK' }]);
 };
+
 

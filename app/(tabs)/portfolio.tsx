@@ -6,16 +6,31 @@ import Colors from '@/constants/Colors';
 import { portfolioData, Project, Certificate } from '@/constants/portfolioData';
 import { Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
+import { useNavigation } from 'expo-router';
 import WebHeader from '@/components/WebHeader';
 import NetworkBackground from '@/components/NetworkBackground';
-import { showDeleteConfirmation, showAlert } from '@/components/DeleteConfirmation';
+import { showDeleteConfirmation, showArchiveConfirmation, showAlert } from '@/components/DeleteConfirmation';
 import { getIndexedDBItem, setIndexedDBItem } from '@/utils/storage';
 import { compressImage } from '@/utils/image';
+import {
+  isSupabaseConfigured,
+  fetchProjectsFromSupabase,
+  saveProjectToSupabase,
+  deleteProjectFromSupabase,
+  archiveProjectInSupabase,
+  fetchCertificatesFromSupabase,
+  saveCertificateToSupabase,
+  deleteCertificateFromSupabase,
+  archiveCertificateInSupabase,
+  fetchResumeFromSupabase,
+  saveResumeToSupabase
+} from '@/utils/supabase';
 
 
 const { height } = Dimensions.get('window');
 
 export default function PortfolioScreen() {
+  const navigation = useNavigation();
   const isWeb = Platform.OS === 'web';
 
   // Initialize projects and certificates in State
@@ -23,29 +38,75 @@ export default function PortfolioScreen() {
   const [certificates, setCertificates] = useState<Certificate[]>(portfolioData.certificates);
   const [hasLoaded, setHasLoaded] = useState(false);
 
-  // Load from IndexedDB on web mount
+  // Load from Supabase or IndexedDB on mount
   useEffect(() => {
-    if (isWeb) {
-      const loadInitialData = async () => {
-        try {
-          const storedProjects = await getIndexedDBItem<Project[]>('portfolio_projects');
-          const storedCerts = await getIndexedDBItem<Certificate[]>('portfolio_certificates');
-          const storedResume = await getIndexedDBItem<string>('portfolio_resume');
+    const loadInitialData = async () => {
+      try {
+        if (isSupabaseConfigured()) {
+          console.log("Supabase is configured. Fetching data...");
+          const dbProjects = await fetchProjectsFromSupabase();
+          const dbCertificates = await fetchCertificatesFromSupabase();
           
-          if (storedProjects) setProjects(storedProjects);
-          if (storedCerts) setCertificates(storedCerts);
-          if (storedResume) setCurrentResumeUrl(storedResume);
-        } catch (e) {
-          console.error("Failed to load portfolio data from IndexedDB", e);
-        } finally {
-          setHasLoaded(true);
+          // Seed Supabase database if empty
+          if (dbProjects.length === 0 && dbCertificates.length === 0) {
+            console.log("Supabase database is empty. Seeding defaults...");
+            for (const p of portfolioData.projects) {
+              await saveProjectToSupabase(p);
+            }
+            for (const c of portfolioData.certificates) {
+              await saveCertificateToSupabase(c);
+            }
+            const seededProjects = await fetchProjectsFromSupabase();
+            const seededCertificates = await fetchCertificatesFromSupabase();
+            setProjects(seededProjects);
+            setCertificates(seededCertificates);
+          } else {
+            setProjects(dbProjects);
+            setCertificates(dbCertificates);
+          }
+
+          const dbResume = await fetchResumeFromSupabase();
+          if (dbResume) {
+            setCurrentResumeUrl(dbResume);
+          }
+        } else {
+          // Fallback to IndexedDB
+          if (isWeb) {
+            const storedProjects = await getIndexedDBItem<Project[]>('portfolio_projects');
+            const storedCerts = await getIndexedDBItem<Certificate[]>('portfolio_certificates');
+            const storedResume = await getIndexedDBItem<string>('portfolio_resume');
+            
+            if (storedProjects) setProjects(storedProjects);
+            if (storedCerts) setCertificates(storedCerts);
+            if (storedResume) setCurrentResumeUrl(storedResume);
+          }
         }
-      };
+      } catch (e) {
+        console.error("Failed to load portfolio data from Supabase, trying IndexedDB", e);
+        if (isWeb) {
+          try {
+            const storedProjects = await getIndexedDBItem<Project[]>('portfolio_projects');
+            const storedCerts = await getIndexedDBItem<Certificate[]>('portfolio_certificates');
+            const storedResume = await getIndexedDBItem<string>('portfolio_resume');
+            
+            if (storedProjects) setProjects(storedProjects);
+            if (storedCerts) setCertificates(storedCerts);
+            if (storedResume) setCurrentResumeUrl(storedResume);
+          } catch (storageErr) {
+            console.error("Failed to load from local storage fallback", storageErr);
+          }
+        }
+      } finally {
+        setHasLoaded(true);
+      }
+    };
+    loadInitialData();
+
+    const unsubscribe = navigation.addListener('focus', () => {
       loadInitialData();
-    } else {
-      setHasLoaded(true);
-    }
-  }, []);
+    });
+    return unsubscribe;
+  }, [navigation]);
 
   // Persist state updates to IndexedDB
   useEffect(() => {
@@ -194,19 +255,38 @@ export default function PortfolioScreen() {
     }
   };
 
-  // Delete an item from the list with confirmation check
-  const handleDelete = (id: string, type: 'project' | 'certificate') => {
+  // Archive an item from the list with confirmation check
+  const handleArchive = (id: string, type: 'project' | 'certificate') => {
     const title = type === 'project' ? 'Project' : 'Certificate';
     
-    showDeleteConfirmation({
-      title: `Delete ${title}`,
-      text: `Are you sure you want to delete this ${title.toLowerCase()}?`,
+    showArchiveConfirmation({
+      title: `Archive ${title}`,
+      text: `Are you sure you want to archive this ${title.toLowerCase()}?`,
       isDark: colorScheme === 'dark',
-      onConfirm: () => {
-        if (type === 'project') {
-          setProjects(prev => prev.filter(p => p.id !== id));
-        } else {
-          setCertificates(prev => prev.filter(c => c.id !== id));
+      onConfirm: async () => {
+        try {
+          const archivedId = `archived_${id}`;
+          if (isSupabaseConfigured()) {
+            if (type === 'project') {
+              await archiveProjectInSupabase(id);
+            } else {
+              await archiveCertificateInSupabase(id);
+            }
+          }
+          
+          if (type === 'project') {
+            setProjects(prev => prev.map(p => p.id === id ? { ...p, id: archivedId } : p));
+          } else {
+            setCertificates(prev => prev.map(c => c.id === id ? { ...c, id: archivedId } : c));
+          }
+        } catch (dbErr) {
+          console.error("Failed to archive item in database:", dbErr);
+          showAlert({
+            title: 'Archive Failed',
+            text: 'Could not archive the item in the database.',
+            isDark: colorScheme === 'dark',
+            confirmButtonColor: themeColors.tint,
+          });
         }
       }
     });
@@ -250,106 +330,138 @@ export default function PortfolioScreen() {
   };
 
   // Create/Upload or Save edited item
-  const handleUploadSubmit = () => {
+  const handleUploadSubmit = async () => {
     if (!newTitle.trim()) return;
 
-    if (editingItem) {
-      const { id, type } = editingItem;
-      if (type === 'project') {
-        setProjects(prev => prev.map(p => {
-          if (p.id === id) {
-            const updatedImage = newImgUrl.trim() 
-              ? { uri: newImgUrl.trim() } 
-              : p.image;
-              
-            return {
-              ...p,
-              title: newTitle.trim(),
-              description: newDesc.trim() || 'No description provided.',
-              techStack: newTags.split(',').map(t => t.trim()).filter(t => t !== ''),
-              image: updatedImage,
-            };
-          }
-          return p;
-        }));
-      } else {
-        setCertificates(prev => prev.map(c => {
-          if (c.id === id) {
-            const updatedImage = newImgUrl.trim() 
-              ? { uri: newImgUrl.trim() } 
-              : c.image;
-              
-            return {
-              ...c,
-              title: newTitle.trim(),
-              issuer: newIssuer.trim() || 'Self-Issued',
-              issueDate: newDate.trim() || 'Certified',
-              image: updatedImage,
-              pdfUrl: newPdfUrl.trim() || c.pdfUrl,
-            };
-          }
-          return c;
-        }));
-      }
-    } else {
-      const newId = Date.now().toString();
-      const imageAsset = newImgUrl.trim() 
-        ? { uri: newImgUrl.trim() } 
-        : (uploadType === 'project' 
-            ? require('../../assets/images/project_web.png') // default mockup
-            : require('../../assets/images/certificate_claude.png'));
+    const useSupabase = isSupabaseConfigured();
 
-      if (uploadType === 'project') {
-        const newProj: Project = {
-          id: newId,
-          title: newTitle.trim(),
-          description: newDesc.trim() || 'No description provided.',
-          techStack: newTags.split(',').map(t => t.trim()).filter(t => t !== ''),
-          image: imageAsset,
-          githubUrl: 'https://github.com/arvincatalbas',
-          liveUrl: 'https://github.com/arvincatalbas',
-          isUploaded: true,
-        };
-        setProjects(prev => [newProj, ...prev]);
-      } else if (uploadType === 'certificate') {
-        const newCert: Certificate = {
-          id: newId,
-          title: newTitle.trim(),
-          issuer: newIssuer.trim() || 'Self-Issued',
-          issueDate: newDate.trim() || 'Certified',
-          image: imageAsset,
-          pdfUrl: newPdfUrl.trim() || 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-          isUploaded: true,
-        };
-        setCertificates(prev => [newCert, ...prev]);
-      } else if (uploadType === 'resume') {
-        if (isWeb) {
-          setIndexedDBItem('portfolio_resume', newPdfUrl.trim())
-            .then(() => {
-              setCurrentResumeUrl(newPdfUrl.trim());
-              showAlert({
-                title: 'Resume Updated',
-                text: 'Your resume has been successfully updated.',
-                isDark: colorScheme === 'dark',
-                confirmButtonColor: themeColors.tint,
-              });
-            })
-            .catch(e => {
-              console.error("Failed to save resume to IndexedDB", e);
-              showAlert({
-                title: 'Upload Failed',
-                text: 'Could not save the resume locally.',
-                isDark: colorScheme === 'dark',
-                confirmButtonColor: themeColors.tint,
-              });
-            });
+    try {
+      if (editingItem) {
+        const { id, type } = editingItem;
+        if (type === 'project') {
+          const updatedImage = newImgUrl.trim() 
+            ? { uri: newImgUrl.trim() } 
+            : projects.find(p => p.id === id)?.image;
+            
+          const updatedProj: Project = {
+            id,
+            title: newTitle.trim(),
+            description: newDesc.trim() || 'No description provided.',
+            techStack: newTags.split(',').map(t => t.trim()).filter(t => t !== ''),
+            image: updatedImage,
+            githubUrl: projects.find(p => p.id === id)?.githubUrl || 'https://github.com/arvincatalbas',
+            liveUrl: projects.find(p => p.id === id)?.liveUrl,
+          };
+
+          if (useSupabase) {
+            await saveProjectToSupabase(updatedProj);
+            // Re-fetch to load final URL from database
+            const dbProjects = await fetchProjectsFromSupabase();
+            setProjects(dbProjects);
+          } else {
+            setProjects(prev => prev.map(p => p.id === id ? updatedProj : p));
+          }
         } else {
-          alert("Local storage is only supported on the Web preview.");
+          const updatedImage = newImgUrl.trim() 
+            ? { uri: newImgUrl.trim() } 
+            : certificates.find(c => c.id === id)?.image;
+            
+          const updatedCert: Certificate = {
+            id,
+            title: newTitle.trim(),
+            issuer: newIssuer.trim() || 'Self-Issued',
+            issueDate: newDate.trim() || 'Certified',
+            image: updatedImage,
+            pdfUrl: newPdfUrl.trim() || certificates.find(c => c.id === id)?.pdfUrl || 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+          };
+
+          if (useSupabase) {
+            await saveCertificateToSupabase(updatedCert);
+            const dbCertificates = await fetchCertificatesFromSupabase();
+            setCertificates(dbCertificates);
+          } else {
+            setCertificates(prev => prev.map(c => c.id === id ? updatedCert : c));
+          }
+        }
+      } else {
+        const newId = Date.now().toString();
+        const imageAsset = newImgUrl.trim() 
+          ? { uri: newImgUrl.trim() } 
+          : (uploadType === 'project' 
+              ? require('../../assets/images/project_web.png') // default mockup
+              : require('../../assets/images/certificate_claude.png'));
+
+        if (uploadType === 'project') {
+          const newProj: Project = {
+            id: newId,
+            title: newTitle.trim(),
+            description: newDesc.trim() || 'No description provided.',
+            techStack: newTags.split(',').map(t => t.trim()).filter(t => t !== ''),
+            image: imageAsset,
+            githubUrl: 'https://github.com/arvincatalbas',
+            liveUrl: 'https://github.com/arvincatalbas',
+            isUploaded: true,
+          };
+
+          if (useSupabase) {
+            await saveProjectToSupabase(newProj);
+            const dbProjects = await fetchProjectsFromSupabase();
+            setProjects(dbProjects);
+          } else {
+            setProjects(prev => [newProj, ...prev]);
+          }
+        } else if (uploadType === 'certificate') {
+          const newCert: Certificate = {
+            id: newId,
+            title: newTitle.trim(),
+            issuer: newIssuer.trim() || 'Self-Issued',
+            issueDate: newDate.trim() || 'Certified',
+            image: imageAsset,
+            pdfUrl: newPdfUrl.trim() || 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+            isUploaded: true,
+          };
+
+          if (useSupabase) {
+            await saveCertificateToSupabase(newCert);
+            const dbCertificates = await fetchCertificatesFromSupabase();
+            setCertificates(dbCertificates);
+          } else {
+            setCertificates(prev => [newCert, ...prev]);
+          }
+        } else if (uploadType === 'resume') {
+          if (useSupabase) {
+            const finalUrl = await saveResumeToSupabase(newPdfUrl.trim());
+            setCurrentResumeUrl(finalUrl);
+            showAlert({
+              title: 'Resume Updated',
+              text: 'Your resume has been successfully saved to Supabase.',
+              isDark: colorScheme === 'dark',
+              confirmButtonColor: themeColors.tint,
+            });
+          } else if (isWeb) {
+            await setIndexedDBItem('portfolio_resume', newPdfUrl.trim());
+            setCurrentResumeUrl(newPdfUrl.trim());
+            showAlert({
+              title: 'Resume Updated',
+              text: 'Your resume has been successfully updated.',
+              isDark: colorScheme === 'dark',
+              confirmButtonColor: themeColors.tint,
+            });
+          } else {
+            alert("Local storage is only supported on the Web preview.");
+          }
         }
       }
+      handleCloseModal();
+    } catch (err) {
+      console.error("Failed to upload/save changes:", err);
+      showAlert({
+        title: 'Submit Failed',
+        text: 'An error occurred while saving your data. Please check your Supabase connection and tables.',
+        isDark: colorScheme === 'dark',
+        confirmButtonColor: themeColors.tint,
+      });
     }
-
-    handleCloseModal();
   };
 
   // Responsive design tokens
@@ -383,6 +495,9 @@ export default function PortfolioScreen() {
     }
     return '100%';
   };
+
+  const activeProjects = projects.filter(p => !p.id.startsWith('archived_'));
+  const activeCertificates = certificates.filter(c => !c.id.startsWith('archived_'));
 
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
@@ -562,7 +677,7 @@ export default function PortfolioScreen() {
               marginTop: 32,
             }
           ]}>
-            {projects.map((project: Project) => (
+            {activeProjects.map((project: Project) => (
               <View 
                 key={project.id} 
                 className="portfolio-card-3d"
@@ -579,13 +694,13 @@ export default function PortfolioScreen() {
                 <View className="image-zoom-3d" style={[styles.imageContainer, { height: imageContainerHeight }]}>
                   <Image source={project.image} style={styles.projectImage} resizeMode="cover" />
                   
-                  {/* Delete Button overlay */}
+                  {/* Archive Button overlay */}
                   <TouchableOpacity 
-                    className="delete-overlay-btn"
-                    style={styles.deleteOverlay}
-                    onPress={() => handleDelete(project.id, 'project')}
+                    className="archive-overlay-btn"
+                    style={styles.archiveOverlay}
+                    onPress={() => handleArchive(project.id, 'project')}
                   >
-                    <Ionicons className="icon-3d-rotate" name="trash" size={18} color="#EF4444" />
+                    <Ionicons className="icon-3d-rotate" name="archive-outline" size={18} color="#F59E0B" />
                   </TouchableOpacity>
 
                   {/* Edit Button overlay */}
@@ -653,7 +768,7 @@ export default function PortfolioScreen() {
               marginTop: 32,
             }
           ]}>
-            {certificates.map((cert: Certificate) => (
+            {activeCertificates.map((cert: Certificate) => (
               <View 
                 key={cert.id} 
                 className="portfolio-card-3d"
@@ -678,18 +793,18 @@ export default function PortfolioScreen() {
                 >
                   <Image source={cert.image} style={styles.certImage} resizeMode="contain" />
                   
-                  {/* Delete Button overlay */}
+                  {/* Archive Button overlay */}
                   <TouchableOpacity 
-                    className="delete-overlay-btn"
-                    style={styles.deleteOverlay}
+                    className="archive-overlay-btn"
+                    style={styles.archiveOverlay}
                     onPress={(e: any) => {
                       if (Platform.OS === 'web' && e && e.stopPropagation) {
                         e.stopPropagation();
                       }
-                      handleDelete(cert.id, 'certificate');
+                      handleArchive(cert.id, 'certificate');
                     }}
                   >
-                    <Ionicons className="icon-3d-rotate" name="trash" size={18} color="#EF4444" />
+                    <Ionicons className="icon-3d-rotate" name="archive-outline" size={18} color="#F59E0B" />
                   </TouchableOpacity>
 
                   {/* Edit Button overlay */}
@@ -1135,7 +1250,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  deleteOverlay: {
+  archiveOverlay: {
     position: 'absolute',
     top: 12,
     left: 12,
