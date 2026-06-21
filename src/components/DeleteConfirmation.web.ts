@@ -4,7 +4,7 @@ interface ConfirmOptions {
   title: string;
   text: string;
   isDark: boolean;
-  onConfirm: () => void;
+  onConfirm: () => void | Promise<void>;
 }
 
 export const showDeleteConfirmation = ({ title, text, isDark, onConfirm }: ConfirmOptions) => {
@@ -24,20 +24,45 @@ export const showDeleteConfirmation = ({ title, text, isDark, onConfirm }: Confi
     customClass: {
       popup: 'swal-premium-popup',
     }
-  }).then((result) => {
+  }).then(async (result) => {
     if (result.isConfirmed) {
-      onConfirm();
-      Swal.fire({
-        title: 'Deleted!',
-        text: 'Successfully deleted.',
-        icon: 'success',
-        iconColor: isDark ? '#00eeff' : '#00bcd4',
-        confirmButtonColor: isDark ? '#00eeff' : '#00bcd4',
-        background: isDark ? '#323946' : '#FFFFFF',
-        color: isDark ? '#FFFFFF' : '#1F2937',
-        timer: 1500,
-        showConfirmButton: false,
-      });
+      try {
+        Swal.fire({
+          title: 'Deleting...',
+          text: 'Please wait.',
+          allowOutsideClick: false,
+          showConfirmButton: false,
+          background: isDark ? '#323946' : '#FFFFFF',
+          color: isDark ? '#FFFFFF' : '#1F2937',
+          scrollbarPadding: false,
+          customClass: {
+            popup: 'swal-premium-popup',
+          },
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
+
+        await onConfirm();
+
+        Swal.fire({
+          title: 'Deleted!',
+          text: 'Successfully deleted.',
+          icon: 'success',
+          iconColor: isDark ? '#00eeff' : '#00bcd4',
+          confirmButtonColor: isDark ? '#00eeff' : '#00bcd4',
+          background: isDark ? '#323946' : '#FFFFFF',
+          color: isDark ? '#FFFFFF' : '#1F2937',
+          timer: 1500,
+          showConfirmButton: false,
+          scrollbarPadding: false,
+          customClass: {
+            popup: 'swal-premium-popup',
+          }
+        });
+      } catch (err) {
+        // Operation failed, error alert shown by onConfirm
+      }
     }
   });
 };
@@ -59,20 +84,45 @@ export const showArchiveConfirmation = ({ title, text, isDark, onConfirm }: Conf
     customClass: {
       popup: 'swal-premium-popup',
     }
-  }).then((result) => {
+  }).then(async (result) => {
     if (result.isConfirmed) {
-      onConfirm();
-      Swal.fire({
-        title: 'Archived!',
-        text: 'Successfully archived.',
-        icon: 'success',
-        iconColor: isDark ? '#00eeff' : '#00bcd4',
-        confirmButtonColor: isDark ? '#00eeff' : '#00bcd4',
-        background: isDark ? '#323946' : '#FFFFFF',
-        color: isDark ? '#FFFFFF' : '#1F2937',
-        timer: 1500,
-        showConfirmButton: false,
-      });
+      try {
+        Swal.fire({
+          title: 'Archiving...',
+          text: 'Please wait.',
+          allowOutsideClick: false,
+          showConfirmButton: false,
+          background: isDark ? '#323946' : '#FFFFFF',
+          color: isDark ? '#FFFFFF' : '#1F2937',
+          scrollbarPadding: false,
+          customClass: {
+            popup: 'swal-premium-popup',
+          },
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
+
+        await onConfirm();
+
+        Swal.fire({
+          title: 'Archived!',
+          text: 'Successfully archived.',
+          icon: 'success',
+          iconColor: isDark ? '#00eeff' : '#00bcd4',
+          confirmButtonColor: isDark ? '#00eeff' : '#00bcd4',
+          background: isDark ? '#323946' : '#FFFFFF',
+          color: isDark ? '#FFFFFF' : '#1F2937',
+          timer: 1500,
+          showConfirmButton: false,
+          scrollbarPadding: false,
+          customClass: {
+            popup: 'swal-premium-popup',
+          }
+        });
+      } catch (err) {
+        // Operation failed, error alert shown by onConfirm
+      }
     }
   });
 };
@@ -82,16 +132,20 @@ interface AlertOptions {
   text: string;
   isDark: boolean;
   confirmButtonColor?: string;
+  icon?: 'success' | 'error' | 'warning' | 'info' | 'question';
 }
 
-export const showAlert = ({ title, text, isDark, confirmButtonColor }: AlertOptions) => {
+export const showAlert = ({ title, text, isDark, confirmButtonColor, icon }: AlertOptions) => {
   Swal.fire({
     title: title,
     text: text,
-    icon: 'warning',
+    icon: icon || 'warning',
     confirmButtonColor: confirmButtonColor || '#00eeff',
     background: isDark ? '#323946' : '#FFFFFF',
     color: isDark ? '#FFFFFF' : '#1F2937',
+    scrollbarPadding: false,
+    customClass: {
+      popup: 'swal-premium-popup',
+    }
   });
 };
-

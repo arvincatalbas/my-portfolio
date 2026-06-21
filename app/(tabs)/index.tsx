@@ -76,7 +76,16 @@ export default function HomeScreen() {
       loadResume();
     });
 
-    return unsubscribe;
+    if (Platform.OS === 'web') {
+      window.addEventListener('portfolio-data-updated', loadResume);
+    }
+
+    return () => {
+      unsubscribe();
+      if (Platform.OS === 'web') {
+        window.removeEventListener('portfolio-data-updated', loadResume);
+      }
+    };
   }, [navigation]);
 
   // Responsive design tokens

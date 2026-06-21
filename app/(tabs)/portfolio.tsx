@@ -105,7 +105,17 @@ export default function PortfolioScreen() {
     const unsubscribe = navigation.addListener('focus', () => {
       loadInitialData();
     });
-    return unsubscribe;
+
+    if (Platform.OS === 'web') {
+      window.addEventListener('portfolio-data-updated', loadInitialData);
+    }
+
+    return () => {
+      unsubscribe();
+      if (Platform.OS === 'web') {
+        window.removeEventListener('portfolio-data-updated', loadInitialData);
+      }
+    };
   }, [navigation]);
 
   // Persist state updates to IndexedDB
@@ -199,6 +209,7 @@ export default function PortfolioScreen() {
               text: 'PDF size exceeds the 2MB limit. Please upload a smaller PDF file.',
               isDark: colorScheme === 'dark',
               confirmButtonColor: themeColors.tint,
+              icon: 'warning',
             });
             return;
           }
@@ -286,7 +297,9 @@ export default function PortfolioScreen() {
             text: 'Could not archive the item in the database.',
             isDark: colorScheme === 'dark',
             confirmButtonColor: themeColors.tint,
+            icon: 'error',
           });
+          throw dbErr;
         }
       }
     });
@@ -437,6 +450,7 @@ export default function PortfolioScreen() {
               text: 'Your resume has been successfully saved to Supabase.',
               isDark: colorScheme === 'dark',
               confirmButtonColor: themeColors.tint,
+              icon: 'success',
             });
           } else if (isWeb) {
             await setIndexedDBItem('portfolio_resume', newPdfUrl.trim());
@@ -446,6 +460,7 @@ export default function PortfolioScreen() {
               text: 'Your resume has been successfully updated.',
               isDark: colorScheme === 'dark',
               confirmButtonColor: themeColors.tint,
+              icon: 'success',
             });
           } else {
             alert("Local storage is only supported on the Web preview.");
@@ -460,6 +475,7 @@ export default function PortfolioScreen() {
         text: 'An error occurred while saving your data. Please check your Supabase connection and tables.',
         isDark: colorScheme === 'dark',
         confirmButtonColor: themeColors.tint,
+        icon: 'error',
       });
     }
   };
@@ -532,36 +548,6 @@ export default function PortfolioScreen() {
           }
           .image-zoom-3d, .text-pop-3d {
             transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
-          }
-
-          /* SweetAlert Premium Theme Styles */
-          .swal2-container {
-            background-color: rgba(0, 0, 0, 0.25) !important;
-            backdrop-filter: blur(4px) !important;
-            -webkit-backdrop-filter: blur(4px) !important;
-          }
-          .swal2-popup.swal-premium-popup {
-            border-radius: 24px !important;
-            border: 1px solid ${themeColors.border} !important;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35) !important;
-            font-family: 'Outfit', 'Montserrat', sans-serif !important;
-          }
-          .swal2-styled.swal2-confirm {
-            border-radius: 12px !important;
-            font-family: 'Outfit', 'Montserrat', sans-serif !important;
-            font-weight: 600 !important;
-            padding: 10px 24px !important;
-            font-size: 15px !important;
-          }
-          .swal2-styled.swal2-cancel {
-            border-radius: 12px !important;
-            font-family: 'Outfit', 'Montserrat', sans-serif !important;
-            font-weight: 600 !important;
-            padding: 10px 24px !important;
-            font-size: 15px !important;
-          }
-          .swal2-icon {
-            border-width: 3px !important;
           }
         `}</style>
       )}

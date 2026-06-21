@@ -4,7 +4,7 @@ interface ConfirmOptions {
   title: string;
   text: string;
   isDark: boolean;
-  onConfirm: () => void;
+  onConfirm: () => void | Promise<void>;
 }
 
 export const showDeleteConfirmation = ({ title, text, isDark, onConfirm }: ConfirmOptions) => {
@@ -26,7 +26,7 @@ export const showDeleteConfirmation = ({ title, text, isDark, onConfirm }: Confi
   );
 };
 
-export const showArchiveConfirmation = ({ title, text, onConfirm }: ConfirmOptions) => {
+export const showArchiveConfirmation = ({ title, text, isDark, onConfirm }: ConfirmOptions) => {
   Alert.alert(
     title,
     text,
@@ -50,10 +50,9 @@ interface AlertOptions {
   text: string;
   isDark: boolean;
   confirmButtonColor?: string;
+  icon?: 'success' | 'error' | 'warning' | 'info' | 'question';
 }
 
 export const showAlert = ({ title, text }: AlertOptions) => {
   Alert.alert(title, text, [{ text: 'OK' }]);
 };
-
-

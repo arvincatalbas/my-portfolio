@@ -99,11 +99,13 @@ export default function SettingsModal({ visible, onClose }: SettingsModalProps) 
       }
       
       if (Platform.OS === 'web') {
+        window.dispatchEvent(new Event('portfolio-data-updated'));
         showAlert({
           title: 'Restored!',
           text: `Successfully restored ${title.toLowerCase()}.`,
           isDark: colorScheme === 'dark',
           confirmButtonColor: themeColors.tint,
+          icon: 'success',
         });
       } else {
         Alert.alert("Restored", `${title} restored successfully.`);
@@ -115,6 +117,7 @@ export default function SettingsModal({ visible, onClose }: SettingsModalProps) 
         text: 'Could not restore the item.',
         isDark: colorScheme === 'dark',
         confirmButtonColor: themeColors.tint,
+        icon: 'error',
       });
     }
   };
@@ -149,6 +152,10 @@ export default function SettingsModal({ visible, onClose }: SettingsModalProps) 
           } else {
             setArchivedCertificates(prev => prev.filter(c => c.id !== id));
           }
+
+          if (Platform.OS === 'web') {
+            window.dispatchEvent(new Event('portfolio-data-updated'));
+          }
         } catch (err) {
           console.error("Failed to delete item permanently:", err);
           showAlert({
@@ -156,7 +163,9 @@ export default function SettingsModal({ visible, onClose }: SettingsModalProps) 
             text: 'Could not delete the item permanently.',
             isDark: colorScheme === 'dark',
             confirmButtonColor: themeColors.tint,
+            icon: 'error',
           });
+          throw err;
         }
       }
     });
