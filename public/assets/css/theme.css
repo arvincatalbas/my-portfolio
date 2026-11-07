@@ -1,0 +1,61 @@
+:root {
+    color-scheme: light;
+
+    --bg-color: #ffffff;
+    --text-color: #111111;
+    --secondary-color: #666666;
+    --secondary-text: #666666;
+    --border-color: #e5e5e5;
+    --surface-color: #f7f7f7;
+    --card-bg: #f7f7f7;
+    --button-bg: #111111;
+    --button-text: #ffffff;
+}
+
+[data-theme="dark"] {
+    color-scheme: dark;
+
+    --bg-color: #080808;
+    --text-color: #ffffff;
+    --secondary-color: #a3a3a3;
+    --secondary-text: #a3a3a3;
+    --border-color: #292929;
+    --surface-color: #111111;
+    --card-bg: #111111;
+    --button-bg: #ffffff;
+    --button-text: #111111;
+}
+
+/* GLOBAL STYLES */
+html,
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+
+/* COMMON COMPONENTS */
+.portfolio-navbar,
+.nav-container,
+.project-card,
+.skill-card,
+.contact-card,
+.portfolio-footer {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    border-color: var(--border-color);
+}
+
+/* SECONDARY TEXT */
+p,
+.section-description {
+    color: var(--secondary-text);
+}
+
+/* SURFACE ELEMENTS */
+.card,
+.form-control,
+.section-card {
+    background-color: var(--surface-color);
+    color: var(--text-color);
+    border-color: var(--border-color);
+}

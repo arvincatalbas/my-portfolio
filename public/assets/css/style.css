@@ -1,0 +1,124 @@
+/* THEME VARIABLES */
+
+:root {
+    color-scheme: light;
+
+    --bg-color: #ffffff;
+    --text-color: #111111;
+    --secondary-color: #666666;
+    --secondary-text: #666666;
+    --border-color: #e5e5e5;
+    --card-bg: #f7f7f7;
+    --surface-color: #f7f7f7;
+    --button-bg: #111111;
+    --button-text: #ffffff;
+}
+
+[data-theme="dark"] {
+    color-scheme: dark;
+
+    --bg-color: #080808;
+    --text-color: #ffffff;
+    --secondary-color: #a3a3a3;
+    --secondary-text: #a3a3a3;
+    --border-color: #292929;
+    --card-bg: #111111;
+    --surface-color: #111111;
+    --button-bg: #ffffff;
+    --button-text: #111111;
+}
+
+/* GLOBAL THEME TRANSITIONS */
+
+html {
+    background: var(--bg-color);
+}
+
+body {
+    background: var(--bg-color);
+    color: var(--text-color);
+}
+
+/* Fallback smooth transition for browsers without View Transitions */
+@supports not (view-transition-name: root) {
+    body,
+    .portfolio-navbar,
+    .nav-container,
+    .nav-link,
+    .theme-toggle,
+    .project-card,
+    .skill-card,
+    button {
+        transition:
+            background-color 0.4s ease,
+            color 0.4s ease,
+            border-color 0.4s ease;
+    }
+}
+
+/* CIRCULAR REVEAL THEME EFFECT */
+
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+    z-index: 1;
+}
+
+::view-transition-new(root) {
+    z-index: 9999;
+}
+
+/* THEME TOGGLE BUTTON */
+
+.theme-toggle {
+    width: 42px;
+    height: 42px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+
+    background: var(--bg-color);
+    color: var(--text-color);
+
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.theme-toggle i {
+    font-size: 16px;
+
+    transition:
+        transform 0.4s ease,
+        opacity 0.3s ease;
+}
+
+.theme-toggle:hover i {
+    transform: rotate(25deg) scale(1.15);
+}
+
+.theme-toggle:active {
+    transform: scale(0.92);
+}
+
+/* ACCESSIBILITY */
+
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+        animation: none !important;
+    }
+
+    body,
+    .theme-toggle,
+    .theme-toggle i {
+        transition-duration: 0.01ms;
+    }
+}
