@@ -1,13 +1,14 @@
 /* Navbar */
 .portfolio-navbar {
     position: fixed;
-    background: var(--bg-color);
     top: 20px;
     left: 0;
     width: 100%;
     z-index: 1000;
 
     padding: 0 5%;
+    background: transparent;
+    pointer-events: none;
 }
 
 .nav-container {
@@ -22,8 +23,9 @@
 
     background: var(--bg-color);
     border: 1px solid var(--border-color);
-    border-color: var(--border-color);
     border-radius: 50px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    pointer-events: auto;
 
     transition: all 0.3s ease;
 }
@@ -155,9 +157,12 @@
         background: var(--bg-color);
         border: 1px solid var(--border-color);
         border-radius: 20px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        pointer-events: auto;
     }
 
-    .nav-menu.show {
+    .nav-menu.show,
+    .nav-menu.active {
         display: flex;
     }
 

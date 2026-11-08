@@ -11,9 +11,7 @@ class Projects extends BaseController
         $projectModel = new ProjectModel();
 
         $data = [
-            'projects' => $projectModel
-                ->orderBy('create_at', 'DESC')
-                ->findAll()
+            'projects' => $projectModel->getUniqueProjects()
         ];
 
         return view('sections/projects', $data);

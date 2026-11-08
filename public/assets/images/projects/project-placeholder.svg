@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-label="Project placeholder">
+  <defs>
+    <linearGradient id="bg" x1="0%" x2="100%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#e2e8f0"/>
+      <stop offset="100%" stop-color="#cbd5e1"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="500" fill="url(#bg)"/>
+  <circle cx="400" cy="195" r="88" fill="#ffffff" opacity="0.8"/>
+  <path d="M368 150h64l54 54v146H368z" fill="#94a3b8" opacity="0.85"/>
+  <path d="M432 150v54h54" fill="#cbd5e1" opacity="0.9"/>
+  <path d="M300 335h200" stroke="#64748b" stroke-width="18" stroke-linecap="round" opacity="0.75"/>
+  <path d="M340 285h120" stroke="#64748b" stroke-width="18" stroke-linecap="round" opacity="0.75"/>
+  <text x="400" y="420" text-anchor="middle" font-size="34" font-family="Arial, sans-serif" fill="#334155" font-weight="700">Project</text>
+</svg>

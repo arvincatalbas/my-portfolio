@@ -34,4 +34,11 @@ class ProjectModel extends Model
     protected $createdField = 'created_at';
 
     protected $updatedField = 'updated_at';
+
+    public function getUniqueProjects()
+    {
+        return $this->groupBy('project_title')
+            ->orderBy('id', 'ASC')
+            ->findAll();
+    }
 }
