@@ -48,6 +48,25 @@ class ProjectSeeder extends Seeder
 
                 'update_at' => date('Y-m-d H:i:s'),
             ],
+
+            [
+                'project_title' => 'My Portfolio',
+
+                'project_description' => 'A modern and responsive personal portfolio website built with CodeIgniter, featuring a minimalist black-and-white design, circular reveal theme switching, project gallery, technical skills showcase, and contact form.',
+
+                'project_image' => 'Senemorph.png',
+
+                'technologies' => 'CodeIgniter, PHP, JavaScript, CSS3',
+
+                'github_link' =>
+                'https://github.com/arvincatalbas/my-portfolio',
+
+                'live_demo' => '#',
+
+                'create_at' => date('Y-m-d H:i:s'),
+
+                'update_at' => date('Y-m-d H:i:s'),
+            ],
         ];
 
         $this->db->table('projects')->insertBatch($data);

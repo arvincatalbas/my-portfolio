@@ -29,7 +29,7 @@ class Contact extends BaseController
         }
 
         $contactModel->insert([
-            'name' => $this->request->getPost('mame'),
+            'name' => $this->request->getPost('name'),
             'email' => $this->request->getPost('email'),
             'subject' => $this->request->getPost('subject'),
             'message' => $this->request->getPost('message'),
