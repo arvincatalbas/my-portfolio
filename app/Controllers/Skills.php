@@ -11,9 +11,7 @@ class Skills extends BaseController
         $skillModel = new SkillModel();
 
         $data = [
-            'skills' => $skillModel
-                ->orderBy('skill_category', 'ASC')
-                ->findAll()
+            'skills' => $skillModel->getUniqueSkills()
         ];
 
         return view('sections/skills', $data);

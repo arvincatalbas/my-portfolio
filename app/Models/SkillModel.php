@@ -16,11 +16,7 @@ class SkillModel extends Model
 
     protected $allowedFields = [
         'skill_name',
-        'skill_category',
         'skill_icon',
-        'skill_level',
-        'create_at',
-        'update_at',
     ];
 
     protected $useTimestamps = true;
@@ -30,4 +26,11 @@ class SkillModel extends Model
     protected $createdField = 'created_at';
 
     protected $updatedField = 'updated_at';
+
+    public function getUniqueSkills()
+    {
+        return $this->groupBy('skill_name')
+            ->orderBy('id', 'ASC')
+            ->findAll();
+    }
 }

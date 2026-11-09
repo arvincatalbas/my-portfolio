@@ -31,7 +31,8 @@ class CreateProjectsTable extends Migration
             ],
 
             'technologies' => [
-                'type' => 'TEXT',
+                'type' => 'VARCHAR',
+                'constraint' => 255,
                 'null' => true,
             ],
 

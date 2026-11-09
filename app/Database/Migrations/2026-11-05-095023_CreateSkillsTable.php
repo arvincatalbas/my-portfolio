@@ -20,24 +20,13 @@ class CreateSkillsTable extends Migration
                 'constraint' => 100,
             ],
 
-            'skill_category' => [
-                'type' => 'VARCHAR',
-                'constraint' => 100,
-            ],
-
             'skill_icon' => [
                 'type' => 'VARCHAR',
-                'contraint' => 100,
+                'constraint' => 100,
                 'null' => true,
             ],
 
-            'skill_level' => [
-                'type' => 'TINYINT',
-                'unsigned' => true,
-                'default' => 0,
-            ],
-
-            'create_at' => [
+            'created_at' => [
                 'type' => 'DATETIME',
                 'null' => true,
             ],

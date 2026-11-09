@@ -12,7 +12,7 @@ class CreateContactsTable extends Migration
             'id' => [
                 'type' => 'INT',
                 'unsigned' => true,
-                'auto-increment' => true,
+                'auto_increment' => true,
             ],
 
             'name' => [

@@ -26,7 +26,7 @@ class ContactModel extends Model
 
     protected $dateFormat = 'datetime';
 
-    protected $createdField = 'created_at';
+    protected $createdField = 'create_at';
 
     protected $updatedField = '';
 }

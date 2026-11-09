@@ -31,9 +31,9 @@ class ProjectModel extends Model
 
     protected $dateFormat = 'datetime';
 
-    protected $createdField = 'created_at';
+    protected $createdField = 'create_at';
 
-    protected $updatedField = 'updated_at';
+    protected $updatedField = 'update_at';
 
     public function getUniqueProjects()
     {
