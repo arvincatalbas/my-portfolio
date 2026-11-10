@@ -8,18 +8,15 @@
 
         <!-- Success Message -->
         <?php if (session()->getFlashdata('success')): ?>
-            <div class="contact-alert success-alert" role="status">
-                <i class="fa-solid fa-circle-check"></i>
+            <div class="alert alert-success">
                 <?= esc(session()->getFlashdata('success')) ?>
             </div>
         <?php endif; ?>
 
         <!-- Validation Errors -->
         <?php if (session()->getFlashdata('errors')): ?>
-            <div class="contact-alert error-alert" role="alert">
-                <?php foreach (session()->getFlashdata('errors') as $error): ?>
-                    <p><?= esc($error) ?></p>
-                <?php endforeach; ?>
+            <div class="alert alert-danger">
+                <?= esc(session()->getFlashdata('error')) ?>
             </div>
         <?php endif; ?>
 
@@ -28,7 +25,7 @@
             id="contactForm"
             action="<?= site_url('contact/send') ?>"
             class="contact-form"
-            method="post">
+            method="POST">
             <?= csrf_field() ?>
 
             <div class="contact-form-grid">
@@ -71,7 +68,7 @@
                         type="text"
                         id="subject"
                         name="subject"
-                        placeholder="What is your message about?"
+                        placeholder="Enter subject"
                         value="<?= esc(old('subject')) ?>"
                         required
                         maxlength="150">
@@ -84,13 +81,10 @@
                     <textarea
                         id="message"
                         name="message"
-                        rows="6"
                         placeholder="Write your message here..."
                         required
                         minlength="10"
-                    >
-                        <?= esc(old('message')) ?>
-                    </textarea>
+                    ><?= esc(old('message')) ?></textarea>
                 </div>
 
             </div>

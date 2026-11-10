@@ -13,7 +13,9 @@ class Contact extends BaseController
 
     public function send()
     {
-        $contactModel = new ContactModel();
+        if (!$this->request->is('post')) {
+            return redirect()->to('/contact');
+        }
 
         $rules = [
             'name' => 'required|min_length[2]|max_length[100]',
@@ -28,14 +30,36 @@ class Contact extends BaseController
                 ->with('errors', $this->validator->getErrors());
         }
 
-        $contactModel->insert([
+        $contactModel = new ContactModel();
+
+        $data = [
             'name' => $this->request->getPost('name'),
             'email' => $this->request->getPost('email'),
             'subject' => $this->request->getPost('subject'),
             'message' => $this->request->getPost('message'),
-        ]);
+        ];
 
-        return redirect()->to('/contact')
-            ->with('success', 'Message sent successfully!');
+        try {
+            $inserted = $contactModel->insert($data);
+
+            if ($inserted === false) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('errors', $contactModel->errors())
+                    ->with('error', 'Failed to save your message');
+            }
+
+            return redirect()->to('/#contact')
+                ->with('success', 'Your message has been send successfully!');
+        } catch (\Throwable $e) {
+
+            log_message('error', 'Contact form error: {message}', [
+                'message' => $e->getMessage(),
+            ]);
+
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Something went wrong. Please try again.');
+        }
     }
 }

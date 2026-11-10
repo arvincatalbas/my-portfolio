@@ -19,7 +19,6 @@ class ContactModel extends Model
         'email',
         'subject',
         'message',
-        'create_at',
     ];
 
     protected $useTimestamps = true;
