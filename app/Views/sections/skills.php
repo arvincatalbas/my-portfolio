@@ -25,6 +25,7 @@
                         'mysql' => 'devicon-mysql-plain',
                         'git' => 'devicon-git-plain',
                         'github' => 'devicon-github-original',
+                        'figma' => 'devicon-figma-plain',
                     ];
 
                     $iconClass = $iconClasses[strtolower($skill['skill_icon'])] ?? 'fa-solid fa-code';

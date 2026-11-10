@@ -68,6 +68,11 @@ class SkillSeeder extends Seeder
                 'skill_name' => 'Github',
                 'skill_icon' => 'github',
             ],
+
+            [
+                'skill_name' => 'Figma',
+                'skill_icon' => 'figma',
+            ],
         ];
 
         $now = date('Y-m-d H:i:s');
