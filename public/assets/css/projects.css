@@ -37,16 +37,6 @@
     color: var(--text-color);
 }
 
-.heading-line {
-    width: 60px;
-    height: 4px;
-
-    margin-top: 15px;
-
-    background: #3b82f6;
-    border-radius: 10px;
-}
-
 /* Project Gallery */
 .projects-gallery {
     display: grid;
@@ -75,6 +65,9 @@
 .project-image-wrapper {
     position: relative;
 
+    padding: 12px;
+    box-sizing: border-box;
+
     width: 100%;
     aspect-ratio: 16 / 10;
 
@@ -92,15 +85,14 @@
 
     display: block;
 
-    object-fit: cover;
+    object-fit: contain;
 
     transition: 
-        transform 0.5s ease,
         filter 0.4s ease;
 }
 
 .project-card:hover .project-image {
-    transform: scale(1.06);
+    transform: none;
 }
 
 /* Project Overlay */

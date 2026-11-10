@@ -5,7 +5,6 @@
         <!-- Section Heading -->
         <div class="projects-heading">
             <h2>Projects</h2>
-            <span class="heading-line"></span>
         </div>
 
         <!-- Project Gallery -->
