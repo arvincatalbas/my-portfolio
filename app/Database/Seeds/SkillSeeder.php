@@ -35,7 +35,7 @@ class SkillSeeder extends Seeder
             ],
 
             [
-                'skill_name' => 'CodeIgniter 4',
+                'skill_name' => 'CodeIgniter',
                 'skill_icon' => 'codeigniter',
             ],
 
