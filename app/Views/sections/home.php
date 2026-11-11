@@ -1,7 +1,7 @@
 <section id="home" class="home-section">
     <div class="home-container">
 
-        <!-- Left: Introdiction -->
+        <!-- Left: Introduction -->
         <div class="home-content">
 
             <h1 class="home-name">
