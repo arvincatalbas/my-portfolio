@@ -6,24 +6,26 @@
             <h2 class="contact-title">Contact Me</h2>
         </div>
 
-        <!-- Success Message -->
-        <?php if (session()->getFlashdata('success')): ?>
-            <div class="alert alert-success">
-                <?= esc(session()->getFlashdata('success')) ?>
-            </div>
-        <?php endif; ?>
-
-        <!-- Validation Errors -->
-        <?php if (session()->getFlashdata('errors')): ?>
-            <div class="alert alert-danger">
-                <?= esc(session()->getFlashdata('error')) ?>
-            </div>
-        <?php endif; ?>
+        <?php
+        $success = session()->getFlashdata('success');
+        $errors = (array) session()->getFlashdata('errors');
+        ?>
+        <div id="contactAlert"
+            class="contact-alert <?= $success ? 'success-alert' : 'error-alert' ?>"
+            role="alert"
+            <?= ($success || $errors) ? '' : 'hidden' ?>>
+            <?php if ($success): ?>
+                <p><?= esc($success) ?></p>
+            <?php endif; ?>
+            <?php foreach ($errors as $error): ?>
+                <p><?= esc($error) ?></p>
+            <?php endforeach; ?>
+        </div>
 
         <!-- Contact Form -->
         <form
             id="contactForm"
-            action="<?= site_url('contact/send') ?>"
+            action="<?= base_url('contact/send') ?>"
             class="contact-form"
             method="POST">
             <?= csrf_field() ?>
@@ -83,8 +85,7 @@
                         name="message"
                         placeholder="Write your message here..."
                         required
-                        minlength="10"
-                    ><?= esc(old('message')) ?></textarea>
+                        minlength="10"><?= esc(old('message')) ?></textarea>
                 </div>
 
             </div>
@@ -98,6 +99,6 @@
             </div>
 
         </form>
-        
+
     </div>
 </section>
