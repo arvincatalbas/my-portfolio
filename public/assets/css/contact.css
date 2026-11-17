@@ -31,6 +31,27 @@
     letter-spacing: -2px;
 }
 
+.contact-feedback {
+    min-height: 0;
+    margin-bottom: 0;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.contact-feedback:empty {
+    display: none;
+}
+
+.contact-feedback.success {
+    color: #16a34a;
+    margin-bottom: 20px;
+}
+
+.contact-feedback.error {
+    color: #dc2626;
+}
+
 /* Form */
 .contact-form {
     padding: 40px;
@@ -115,35 +136,35 @@
 }
 
 /* Submit Button */
-.contact-submit {
+.contact-submit-wrapper {
     display: flex;
     justify-content: flex-end;
-
     margin-top: 30px;
 }
 
-.contact-btn {
+.contact-submit {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 12px;
 
-    min-width: 180px;
-    padding: 15px 25px;
+    min-width: 170px;
+    min-height: 52px;
+    padding: 14px 28px;
 
     background: linear-gradient(135deg, #2563eb, #3b82f6);
     color: #ffffff;
 
-    border: 1px solid #3b82f6;
-    border-radius: 12px;
+    border: none;
+    border-radius: 14px;
 
     font-family: inherit;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 600;
 
     cursor: pointer;
 
-    box-shadow: 0 5px 15px rgba(37, 99, 235, 0.2);
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.2);
 
     transition:
         transform 0.3s ease,
@@ -151,44 +172,37 @@
         opacity 0.3s ease;
 }
 
-.contact-btn:hover {
+.contact-submit:hover {
     transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(37, 99, 235, 0.35);
+    box-shadow: 0 12px 25px rgba(59, 130, 246, 0.3);
 }
 
-.contact-btn:active {
+.contact-submit:active {
     transform: translateY(0);
 }
 
-.contact-btn:disabled {
-    opacity: 0.65;
+.contact-submit:disabled {
+    opacity: 0.6;
     cursor: not-allowed;
     transform: none;
+    box-shadow: none;
 }
 
-/* Alerts */
-.contact-alert {
-    margin-bottom: 25px;
-    padding: 16px 20px;
-
-    border-radius: 12px;
-    font-size: 14px;
+.contact-submit .button-text {
+    display: inline-block;
+    min-width: 95px;
+    text-align: center;
+    white-space: nowrap;
 }
 
-.contact-alert p {
-    margin: 5px 0;
+/* Button Icon */
+.contact-submit i {
+    font-size: 15px;
+    transition: transform 0.3s ease;
 }
 
-.success-alert {
-    background: rgba(34, 197, 94, 0.1);
-    border: 1px solid rgba(34, 197, 94, 0.4);
-    color: #16a34a;
-}
-
-.error-alert {
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid rgba(239, 68, 68, 0.4);
-    color: #ef4444;
+.contact-submit:hover i {
+    transform: translateX(3px);
 }
 
 /* RESPONSIVE DESIGN */
@@ -217,10 +231,6 @@
     }
 
     .contact-submit {
-        justify-content: stretch;
-    }
-
-    .contact-btn {
         width: 100%;
     }
 }

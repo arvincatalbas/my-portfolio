@@ -73,6 +73,16 @@ class SkillSeeder extends Seeder
                 'skill_name' => 'Figma',
                 'skill_icon' => 'figma',
             ],
+
+            [
+                'skill_name' => 'Bootstrap',
+                'skill_icon' => 'bootstrap',
+            ],
+
+            [
+                'skill_name' => 'Tailwind',
+                'skill_icon' => 'tailwindcss',
+            ],
         ];
 
         $now = date('Y-m-d H:i:s');

@@ -23,11 +23,17 @@
         </div>
 
         <!-- Contact Form -->
+        <div id="contactFeedback"
+            class="contact-feedback"
+            role="status"
+            aria-live="polite"></div>
+
         <form
-            id="contactForm"
             action="<?= base_url('contact/send') ?>"
+            method="POST"
             class="contact-form"
-            method="POST">
+            id="contactForm">
+
             <?= csrf_field() ?>
 
             <div class="contact-form-grid">
@@ -44,7 +50,7 @@
                         required
                         minlength="2"
                         maxlength="100"
-                        autocomplete="name">
+                        required>
                 </div>
 
                 <!-- Email -->
@@ -59,7 +65,7 @@
                         value="<?= esc(old('email')) ?>"
                         required
                         maxlength="150"
-                        autocomplete="email">
+                        required>
                 </div>
 
                 <!-- Subject -->
@@ -73,7 +79,8 @@
                         placeholder="Enter subject"
                         value="<?= esc(old('subject')) ?>"
                         required
-                        maxlength="150">
+                        maxlength="150"
+                        required>
                 </div>
 
                 <!-- Message -->
@@ -85,16 +92,17 @@
                         name="message"
                         placeholder="Write your message here..."
                         required
-                        minlength="10"><?= esc(old('message')) ?></textarea>
+                        minlength="10"
+                        required></textarea>
                 </div>
 
             </div>
 
             <!-- Submit Button -->
-            <div class="contact-submit">
-                <button type="submit" id="contactSubmit" class="contact-btn">
+            <div class="contact-submit-wrapper">
+                <button type="submit" id="submitBtn" class="contact-submit">
                     <span class="button-text">Send Message</span>
-                    <i class="fa-solid fa-paper-plane button-icon"></i>
+                    <i class="fa-solid fa-paper-plane"></i>
                 </button>
             </div>
 
