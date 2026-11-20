@@ -9,7 +9,7 @@
             </h1>
 
             <h2 class="home-role">
-                Aspiring Fullstack developer | IT Professionals
+                Aspiring Fullstack Developer
             </h2>
 
             <p class="home-description">
