@@ -9,13 +9,13 @@
             </h1>
 
             <h2 class="home-role">
-                IT Graduate
+                Aspiring Fullstack developer | IT Professionals
             </h2>
 
             <p class="home-description">
-                Aspiring IT Professionals. I enjoy building, create 
-                develop modern technologies while continously improve
-                my skills in programming.
+                Information Technology Graduate who can love enjoy create,
+                build, and develop modern technologies and learn continuous
+                about programming and other IT environment.
             </p>
 
             <!-- CV Download -->
