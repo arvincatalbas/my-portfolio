@@ -13,9 +13,11 @@
             </h2>
 
             <p class="home-description">
-                Information Technology Graduate who can love enjoy create,
-                build, and develop modern technologies and learn continuous
-                about programming and other IT environment.
+                An Information Technology graduate who passionate about
+                designing, creating, and developing innovate technology
+                solutions. Dedicated to continuous learning, enhancing 
+                programming skills, and exploring emerging technologies
+                to grow professionally in the ever-evolving IT industry.
             </p>
 
             <!-- CV Download -->
