@@ -3,7 +3,7 @@
 
         <!-- Logo -->
         <a href="<?= base_url('/') ?>" class="nav-logo">
-            Arvin<span>.</span>
+            AC<span>.</span>
         </a>
 
         <!-- Navigation Links -->

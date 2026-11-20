@@ -26,7 +26,7 @@
                    class="btn-cv"
                    download>
                     <i class="fa-solid fa-download"></i>
-                    Download CV
+                    Resume
                 </a>
             </div>
 

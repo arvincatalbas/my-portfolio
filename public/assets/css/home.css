@@ -39,10 +39,11 @@
 }
 
 .home-description {
+    font-family: "Courier New", Courier, monospace;
     font-size: 1rem;
     line-height: 1.9;
     color: var(--secondary-text);
-    max-width: 550px;
+    max-width: 650px;
     margin-bottom: 30px;
 }
 
