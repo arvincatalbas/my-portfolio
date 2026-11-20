@@ -83,6 +83,11 @@ class SkillSeeder extends Seeder
                 'skill_name' => 'Tailwind',
                 'skill_icon' => 'tailwindcss',
             ],
+
+            [
+                'skill_name' => 'Postman',
+                'skill_icon' => 'postman',
+            ],
         ];
 
         $now = date('Y-m-d H:i:s');

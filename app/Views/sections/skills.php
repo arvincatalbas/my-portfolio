@@ -27,7 +27,8 @@
                         'github' => 'devicon-github-original',
                         'figma' => 'devicon-figma-plain',
                         'bootstrap' => 'devicon-bootstrap-plain',
-                        'tailwind' => 'devicon-tailwindcss-original'
+                        'tailwind' => 'devicon-tailwindcss-original',
+                        'postman' => 'devicon-postman-plain'
                     ];
 
                     $iconClass = $iconClasses[strtolower($skill['skill_icon'])] ?? 'fa-solid fa-code';
