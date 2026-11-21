@@ -24,6 +24,7 @@
 }
 
 .home-name {
+    font-family: "Courier New", Courier, monospace;
     font-size: clamp(2.5rem, 5vw, 4.5rem);
     font-weight: 800;
     line-height: 1.1;
@@ -32,6 +33,7 @@
 }
 
 .home-role {
+    font-family: "Courier New", Courier, monospace;
     font-size: 1.7rem;
     line-height: 1.9;
     color: var(--secondary-text);
@@ -53,6 +55,7 @@
 }
 
 .btn-cv {
+    font-family: "Courier New", Courier, monospace;
     display: inline-flex;
     align-items: center;
     justify-content: center;

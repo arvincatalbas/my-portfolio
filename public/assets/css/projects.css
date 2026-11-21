@@ -19,6 +19,7 @@
 
 /* Section Heading */
 .projects-heading {
+    font-family: "Courier New", Courier, monospace;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -115,6 +116,7 @@
 }
 
 .project-view {
+    font-family: "Courier New", Courier, monospace;
     display: inline-flex;
     align-items: center;
     gap: 10px;
@@ -139,6 +141,7 @@
 
 /* Project Title */
 .project-info {
+    font-family: "Courier New", Courier, monospace;
     display: flex;
     align-items: center;
     justify-content: space-between;

@@ -24,6 +24,7 @@
 }
 
 .contact-title {
+    font-family: "Courier New", Courier, monospace;
     margin: 0;
 
     font-size: clamp(2.5rem, 5vw, 4rem);
@@ -64,6 +65,7 @@
 }
 
 .contact-form-grid {
+    font-family: "Courier New", Courier, monospace;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 25px;
@@ -137,6 +139,7 @@
 
 /* Submit Button */
 .contact-submit-wrapper {
+    font-family: "Courier New", Courier, monospace;
     display: flex;
     justify-content: flex-end;
     margin-top: 30px;
