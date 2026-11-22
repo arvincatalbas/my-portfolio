@@ -36,6 +36,7 @@
     font-family: "Courier New", Courier, monospace;
     font-size: 1.7rem;
     line-height: 1.9;
+    font-weight: 900;
     color: var(--secondary-text);
     margin-bottom: 25px;
 }
