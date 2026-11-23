@@ -88,6 +88,11 @@ class SkillSeeder extends Seeder
                 'skill_name' => 'Postman',
                 'skill_icon' => 'postman',
             ],
+
+            [
+                'skill_name' => 'Canva',
+                'skill_icon' => 'canva'
+            ],
         ];
 
         $now = date('Y-m-d H:i:s');
