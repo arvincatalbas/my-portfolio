@@ -30,6 +30,7 @@
                         'tailwind' => 'devicon-tailwindcss-original',
                         'postman' => 'devicon-postman-plain',
                         'canva' => 'devicon-canva-original',
+                        'photoshop' => 'devicon-photoshop-plain',
                     ];
 
                     $iconClass = $iconClasses[strtolower($skill['skill_icon'])] ?? 'fa-solid fa-code';

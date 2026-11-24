@@ -91,7 +91,12 @@ class SkillSeeder extends Seeder
 
             [
                 'skill_name' => 'Canva',
-                'skill_icon' => 'canva'
+                'skill_icon' => 'canva',
+            ],
+
+            [
+                'skill_name' => 'Photoshop',
+                'skill_icon' => 'photoshop',
             ],
         ];
 
