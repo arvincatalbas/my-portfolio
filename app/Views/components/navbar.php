@@ -10,7 +10,7 @@
         <div class="nav-menu" id="navMenu">
             <a href="#home" class="nav-link active">Home</a>
             <a href="#projects" class="nav-link">Projects</a>
-            <a href="#skills" class="nav-link">Skills</a>
+            <a href="#skills" class="nav-link">Stack</a>
             <a href="#contact" class="nav-link">Contact</a>
         </div>
 

@@ -3,7 +3,7 @@
 
         <!-- Section Heading -->
         <div class="skills-header">
-            <h2 class="skills-title">Skills</h2>
+            <h2 class="skills-title">Tech Stack</h2>
         </div>
 
         <!-- Skills Gallery -->
