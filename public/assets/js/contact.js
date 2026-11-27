@@ -4,13 +4,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const submitBtn = document.getElementById("submitBtn");
     const feedback = document.getElementById("contactFeedback");
 
-    if (!form || !submitBtn || !feedback) {
-        console.error("Contact form elements were not found.");
-        return;
-    }
+    if (!form || !submitBtn || !feedback) return;
 
     const buttonText = submitBtn.querySelector(".button-text");
-    const originalText = buttonText.textContent;
+    const originalText = buttonText?.textContent || "Send Message";
 
     form.addEventListener("submit", async (event) => {
 
@@ -25,7 +22,10 @@ document.addEventListener("DOMContentLoaded", () => {
         feedback.className = "contact-feedback";
 
         submitBtn.disabled = true;
-        buttonText.textContent = "Sending...";
+
+        if (buttonText) { 
+            buttonText.textContent = "Submitting...";
+        }
 
         try {
             
@@ -66,23 +66,24 @@ document.addEventListener("DOMContentLoaded", () => {
                     result.message || "Unable to send your message.";
 
                 feedback.classList.add("error");
-
-                console.error("Contact server error:", result.errors || result);
             }
 
         } catch (error) {
+
+            console.error("Contact form error:", error);
             
             feedback.textContent =
-                "A server or connection error occurred. Please try again.";
+                "Connection Error. Please try again.";
 
             feedback.classList.add("error");
-
-            console.error("contact form error:", error);
 
         } finally {
 
             submitBtn.disabled = false;
-            buttonText.textContent = originalText;
+
+            if (buttonText) { 
+                buttonText.textContent = originalText;
+            }
 
         }
 

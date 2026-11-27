@@ -13,8 +13,6 @@ class Contact extends BaseController
 
     public function send()
     {
-        $contactModel = new ContactModel();
-
         $rules = [
             'name' => 'required|min_length[2]|max_length[100]',
             'email' => 'required|valid_email|max_length[150]',
@@ -22,7 +20,6 @@ class Contact extends BaseController
             'message' => 'required|min_length[10]',
         ];
 
-        // JSON response helper
         $jsonResponse = function (int $status, string $message, array $errors = []) {
             return $this->response
                 ->setStatusCode($status)
@@ -37,7 +34,6 @@ class Contact extends BaseController
                 ]);
         };
 
-        // Validate submitted fields
         if (!$this->validate($rules)) {
             return $jsonResponse(
                 422,
@@ -51,8 +47,22 @@ class Contact extends BaseController
         $subject = trim($this->request->getPost('subject'));
         $message = trim($this->request->getPost('message'));
 
-        // Save the message before attempting delivery so SMTP errors do not
-        // discard the visitor's message.
+        $recipient = trim((string) env('PORTFOLIO_EMAIL'));
+
+        if (!filter_var($recipient, FILTER_VALIDATE_EMAIL)) {
+            return $jsonResponse(
+                500,
+                'The contact email is not configured correctly.'
+            );
+        }
+
+        $db = \Config\Database::connect();
+
+        // Save contact and email queue records together.
+        $db->transBegin();
+
+        $contactModel = new ContactModel();
+
         $saved = $contactModel->insert([
             'name' => $name,
             'email' => $sender,
@@ -62,127 +72,72 @@ class Contact extends BaseController
         ]);
 
         if ($saved === false) {
+            $db->transRollback();
+
             log_message(
                 'error',
-                'Contact message could not be saved to the database: ' .
+                'Contact save failed: ' .
                 json_encode($contactModel->errors())
             );
 
             return $jsonResponse(
                 500,
-                'We could not save your message. Please try again.'
+                'Unable to save your message. Please try again.'
             );
         }
 
-        // Get SMTP credentials from .env
-        $recipient = trim((string) env('PORTFOLIO_EMAIL'));
-        $smtpUser = trim((string) env('SMTP_USER'));
-        $smtpPass = preg_replace(
-            '/\s+/',
-            '',
-            trim((string) env('SMTP_PASS'))
-        );
-
-        // Check configuration
-        if (
-            $recipient === '' ||
-            $smtpUser === '' ||
-            $smtpPass === '' ||
-            strlen($smtpPass) !== 16 ||
-            !filter_var($recipient, FILTER_VALIDATE_EMAIL) ||
-            !filter_var($smtpUser, FILTER_VALIDATE_EMAIL)
-        ) {
-            log_message(
-                'error',
-                'Portfolio SMTP configuration is invalid. Check the recipient, SMTP user, and 16-character Gmail App Password.'
-            );
-
-            return $jsonResponse(
-                502,
-                'Your message was saved, but the email service is unavailable. Please use another contact method if you need a response.'
-            );
-        }
-
-        // Gmail SMTP configuration
-        $smtpConfig = [
-            'protocol' => 'smtp',
-            'SMTPHost' => 'smtp.gmail.com',
-            'SMTPUser' => $smtpUser,
-            'SMTPPass' => $smtpPass,
-            'SMTPPort' => 587,
-            'SMTPCrypto' => 'tls',
-            'SMTPTimeout' => 30,
-            'mailType' => 'text',
-            'charset' => 'UTF-8',
-            'wordWrap' => true,
-            'validate' => true,
+        $queue = [
+            [
+                'recipient' => $recipient,
+                'sender' => $sender,
+                'name' => $name,
+                'subject' => 'Portfolio Contact: ' . $subject,
+                'message' =>
+                    "New portfolio contact message\n\n" .
+                    "Name: {$name}\n" .
+                    "Email: {$sender}\n" .
+                    "Subject: {$subject}\n\n" .
+                    "Message:\n{$message}",
+                'status' => 'pending',
+                'attempts' => 0,
+                'create_at' => date('Y-m-d H:i:s'),
+            ],
+            [
+                'recipient' => $sender,
+                'sender' => $recipient,
+                'name' => $name,
+                'subject' => 'Thank you for contacting me!',
+                'message' =>
+                    "Hi {$name},\n\n" .
+                    "Thank you for contacting me through my portfolio.\n\n" .
+                    "I have successfully receive your message and will " .
+                    "get back to you as soon as possible.\n\n" .
+                    "Best regards, \nArvin Catalbas",
+                'status' => 'pending',
+                'attempts' => 0,
+                'create_at' => date('Y-m-d H:i:s'),
+            ],
         ];
 
-        // Send the message to the portfolio owner.
+        $queued = $db->table('email_queue')->insertBatch($queue);
 
-        $email = service('email');
-        $email->initialize($smtpConfig);
+        if ($queued === false || $db->transStatus() === false) {
+            $db->transRollback();
 
-        $email->setFrom($smtpUser, 'Arvin Catalbas');
-        $email->setTo($recipient);
-        $email->setReplyTo($sender, $name);
-
-        $email->setSubject(
-            'Portfolio Contact: ' . $subject
-        );
-
-        $email->setMessage(
-            "You have received a new message from your portfolio.\n\n" .
-            "Full Name: {$name}\n" .
-            "Email Address: {$sender}\n" .
-            "Subject: {$subject}\n\n" .
-            "Message:\n{$message}\n"
-        );
-
-        if (!$email->send()) {
-
-            log_message(
-                'error',
-                'Portfolio owner email failed. Check Gmail SMTP authentication and app-password settings.'
-            );
+            log_message('error', 'Unable to queue contact emails.');
 
             return $jsonResponse(
-                502,
-                'Your message was saved, but the email service is unavailable. Please use another contact method if you need a response.'
+                500,
+                'Unable to process your message. Please try again.'
             );
         }
 
-        // Send an optional confirmation to the visitor.
-        $confirmation = service('email');
-        $confirmation->initialize($smtpConfig);
+        $db->transCommit();
 
-        $confirmation->setFrom(
-            $smtpUser,
-            'Arvin Catalbas'
-        );
-
-        $confirmation->setTo($sender, $name);
-
-        $confirmation->setSubject(
-            'Thank you for contacting me!'
-        );
-
-        $confirmation->setMessage(
-            "Hi {$name},\n\n" .
-            "Thank you for contacting me through my portfolio.\n\n" .
-            "I have successfully received your message and will get back to you as soon as possible.\n\n" .
-            "Your submitted subject: {$subject}\n\n" .
-            "Best regards,\n" .
-            "Arvin Catalbas"
-        );
-
-        if (!$confirmation->send()) {
-            log_message('error', 'Visitor confirmation email failed.');
-        }
-
+        // Do not wait for Gmail SMTP here.
         return $jsonResponse(
             200,
-            'Your message has been sent and saved successfully!'
+            'Your message has been received successfully! Thank you for contacting me.'
         );
     }
 }
