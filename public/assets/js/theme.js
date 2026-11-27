@@ -2,7 +2,7 @@ const themeToggle = document.getElementById("themeToggle");
 const root = document.documentElement;
 
 // Reveal animation duration in milliseconds (adjustable)
-const REVEAL_DURATION = 1100;
+const REVEAL_DURATION = 1200;
 
 // Load saved theme
 const savedTheme = localStorage.getItem("portfolio-theme");
